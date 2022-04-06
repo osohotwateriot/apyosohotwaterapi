@@ -8,6 +8,7 @@ setup.py
 src/apyosohotwaterapi/__init__.py
 src/apyosohotwaterapi/device_attributes.py
 src/apyosohotwaterapi/osohotwater.py
+src/apyosohotwaterapi/sensor.py
 src/apyosohotwaterapi/session.py
 src/apyosohotwaterapi/waterheater.py
 src/apyosohotwaterapi/api/__init__.py

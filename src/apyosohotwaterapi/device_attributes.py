@@ -8,7 +8,6 @@ class OSOHotwaterAttributes:
     hotwaterType = "Hotwater"
     hotwaterState = "HeaterState"
     hotwaterConnection = "HeaterConnection"
-    hotwaterMode = "HeaterMode"
     hotwaterOptimizationMode = "HeaterOptimizationMode"
     hotwaterSubOptimizationMode = "HeaterSubOptimizationMode"
 
@@ -42,13 +41,60 @@ class OSOHotwaterAttributes:
             attr.update({"actual_load_kwh": (await self.getActualLoadKwh(device_id))})
             attr.update({"heater_state": (await self.getHeaterState(device_id))})
             attr.update({"heater_mode": (await self.getHeaterMode(device_id))})
-            attr.update({"current_set_point": (await self.getCurrentSetPoint(device_id))})
+            attr.update({"current_temperature": (await self.getCurrentTemperature(device_id))})
+            attr.update({"target_temperature": (await self.getTargetTemperature(device_id))})
+            attr.update({"target_temperature_low": (await self.getTargetTemperatureLow(device_id))})
+            attr.update({"target_temperature_high": (await self.getTargetTemperatureHigh(device_id))})
+            attr.update({"min_temperature": (await self.getMinTemperature(device_id))})
+            attr.update({"max_temperature": (await self.getMaxTemperature(device_id))})
             attr.update({"optimization_mode": (await self.getOptimizationMode(device_id))})
             attr.update({"sub_optimization_mode": (await self.getSubOptimizationMode(device_id))})
             attr.update({"v40_min": (await self.getV40Min(device_id))})
             attr.update({"profile": (await self.getProfile(device_id))})
 
         return attr
+
+    async def getPowerSave(self, device_id: str):
+        """Check if device is in Power Save mode.
+
+        Args:
+            device_id (str): The id of the device.
+
+        Returns:
+            boolean: True/False if device in Power Save mode.
+        """
+        state = None
+        final = False
+
+        try:
+            data = self.session.data.devices[device_id]
+            state = data.get("isInPowerSave", False)
+            final = OSOTOHA[self.hotwaterType]["HeaterPowerSaveMode"].get(state, False)
+        except KeyError as e:
+            await self.session.log.error(e)
+
+        return final
+
+    async def getExtraEnergy(self, device_id: str):
+        """Check if device is in Extra Energy mode.
+
+        Args:
+            device_id (str): The id of the device.
+
+        Returns:
+            boolean: True/False if device in Extra Energy mode.
+        """
+        state = None
+        final = False
+
+        try:
+            data = self.session.data.devices[device_id]
+            state = data.get("isInExtraEnergy", False)
+            final = OSOTOHA[self.hotwaterType]["HeaterExtraEnergyMode"].get(state, False)
+        except KeyError as e:
+            await self.session.log.error(e)
+
+        return final
 
     async def onlineOffline(self, device_id: str):
         """Check if device is online.
@@ -201,31 +247,126 @@ class OSOHotwaterAttributes:
 
         try:
             data = self.session.data.devices[device_id]
-            state = data.get("control", {}).get("heater", None)
-            final = OSOTOHA[self.hotwaterType][self.hotwaterMode].get(state, "OFF")
+            state = data.get("control", {}).get("mode", None)
+            final = OSOTOHA[self.hotwaterType]["HeaterMode"].get(state, state)
         except KeyError as e:
             await self.session.log.error(e)
 
         return final
 
-    async def getCurrentSetPoint(self, device_id: str):
-        """Get current setpoint of heater.
+    async def getCurrentTemperature(self, device_id: str):
+        """Get current temperature of heater.
 
         Args:
             device_id (str): The id of the device
 
         Returns:
-            float: The current setpoint of the heater.
+            float: The current temperature of the heater.
         """
-        setPoint = None
+        temperature = None
 
         try:
             data = self.session.data.devices[device_id]
-            setPoint = data.get("control", {}).get("currentSetPoint", 0)
+            temperature = data.get("control", {}).get("currentTemperature", 0)
         except KeyError as e:
             await self.session.log.error(e)
 
-        return setPoint
+        return temperature
+
+    async def getTargetTemperature(self, device_id: str):
+        """Get current target temperature of heater.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The current target temperature of the heater.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("targetTemperature", 0)
+        except KeyError as e:
+            await self.session.log.error(e)
+
+        return temperature
+
+    async def getTargetTemperatureLow(self, device_id: str):
+        """Get current target temperature low of heater.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The current target temperature low of the heater.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("targetTemperatureLow", 0)
+        except KeyError as e:
+            await self.session.log.error(e)
+
+        return temperature
+
+    async def getTargetTemperatureHigh(self, device_id: str):
+        """Get current target temperature high of heater.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The current target temperature high of the heater.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("targetTemperatureHigh", 0)
+        except KeyError as e:
+            await self.session.log.error(e)
+
+        return temperature
+
+    async def getMinTemperature(self, device_id: str):
+        """Get min temperature of heater.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The min temperature of the heater.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("minTemperature", 0)
+        except KeyError as e:
+            await self.session.log.error(e)
+
+        return temperature
+
+    async def getMaxTemperature(self, device_id: str):
+        """Get max temperature of heater.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The max temperature of the heater.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("maxTemperature", 0)
+        except KeyError as e:
+            await self.session.log.error(e)
+
+        return temperature
 
     async def getOptimizationMode(self, device_id: str):
         """Get heater optimization mode.
@@ -301,7 +442,7 @@ class OSOHotwaterAttributes:
 
         try:
             data = self.session.data.devices[device_id]
-            level = data["v40Min"]
+            level = data["profile"]
         except KeyError as e:
             await self.session.log.error(e)
 

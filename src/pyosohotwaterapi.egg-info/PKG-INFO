@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pyosohotwaterapi
-Version: 0.0.1
+Version: 0.0.10
 Summary: A Python library to interface with the OSO Hotwater API
 Home-page: https://github.com/osohotwateriot/apyosohotwaterapi
 Author: OSO Hotwater isort

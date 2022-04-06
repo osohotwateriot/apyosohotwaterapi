@@ -1,5 +1,6 @@
 """OSO Hotwater Water Heater Module"""
 
+from sre_parse import State
 from .helper.const import OSOTOHA
 
 class OSOWaterHeater:
@@ -10,8 +11,6 @@ class OSOWaterHeater:
     """
 
     hotwaterType = "Hotwater"
-    hotwaterState = "HeaterState"
-    hotwaterConnection = "HeaterConnection"
 
     async def getHeaterState(self, device: dict):
         """Get water heater current mode.
@@ -28,71 +27,11 @@ class OSOWaterHeater:
         try:
             device = self.session.data.devices[device["device_id"]]
             state = device["control"]["heater"]
-            final = OSOTOHA[self.hotwaterType][self.hotwaterState].get(state, state)
+            final = OSOTOHA[self.hotwaterType]["HeaterState"].get(state, state)
         except KeyError as e:
             await self.session.log.error(e)
 
         return final
-
-    async def getMinTemperature(self, device: dict):
-        """Get heating minimum target temperature.
-
-        Args:
-            device (dict): Device to get min temp for.
-
-        Returns:
-            int: Minimum temperature
-        """
-        return OSOTOHA[self.hotwaterType]["DeviceConstants"]["minTemp"]
-
-    async def getMaxTemperature(self, device: dict):
-        """Get heating maximum target temperature.
-
-        Args:
-            device (dict): Device to get max temp for.
-
-        Returns:
-            int: Maximum temperature
-        """
-        return OSOTOHA[self.hotwaterType]["DeviceConstants"]["maxTemp"]
-
-    async def getTargetTemperature(self, device: dict):
-        """Get heating target temperature.
-
-        Args:
-            device (dict): Device to get target temperature for.
-
-        Returns:
-            str: Target temperature.
-        """
-        state = None
-
-        try:
-            device = self.session.data.devices[device["osoHotwaterID"]]
-            state = float(device["control"].get("currentSetPoint", None))
-        except (KeyError, TypeError) as e:
-            await self.session.log.error(e)
-
-        return state
-
-    async def getConnectionState(self, device: dict):
-        """Get connection state of the heater.
-
-        Args:
-            device (dict): Device to get connection state for.
-
-        Returns:
-            bool: Connection state.
-        """
-        state = False
-
-        try:
-            device = self.session.data.devices[device["device_id"]]
-            state = device["online"]
-        except KeyError as e:
-            await self.session.log.error(e)
-
-        return state
 
 class WaterHeater(OSOWaterHeater):
     """Water heater class.

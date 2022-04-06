@@ -6,10 +6,12 @@ from os.path import expanduser
 from typing import Optional
 
 from aiohttp import ClientSession
+from apyosohotwaterapi.sensor import Sensor
 from loguru import logger
 
 from .session import OSOHotwaterSession
 from .waterheater import WaterHeater
+from .device_attributes import OSOHotwaterAttributes
 
 debug = []
 home = expanduser("~")
@@ -89,7 +91,9 @@ class OSOHotwater(OSOHotwaterSession):
 
         super().__init__(subscriptionKey=subscriptionKey, websession=websession)
         self.session = self
+        self.attr = OSOHotwaterAttributes(self.session)
         self.hotwater = WaterHeater(self.session)
+        self.sensor = Sensor(self.session)
         self.logger = logger
         if debug:
             sys.settrace(trace_debug)

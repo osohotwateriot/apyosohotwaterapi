@@ -58,6 +58,7 @@ class OSOHotwaterSession:
             }
         )
         self.devices = {}
+        self.sensors = {}
         self.deviceList = {}
 
     async def updateInterval(self, new_interval: timedelta):
@@ -101,7 +102,7 @@ class OSOHotwaterSession:
         try:
             ep = self.config.lastUpdate + self.config.scanInterval
             if datetime.now() >= ep:
-                await self.getDevices(device["device_id"])
+                await self.getDevices()
                 updated = True
         finally:
             self.updateLock.release()
@@ -166,8 +167,8 @@ class OSOHotwaterSession:
         )
         
         if config != {}:
-            if config["subscriptionKey"] is not None and not self.config.file:
-                await self.updateSubscriptionKey(config["subscriptionKey"])
+            if config["api_key"] is not None and not self.config.file:
+                await self.updateSubscriptionKey(config["api_key"])
             elif not self.config.file:
                 raise OSOHotwaterUnknownConfiguration
 
@@ -193,6 +194,18 @@ class OSOHotwaterSession:
         for aDevice in self.data["devices"]:
             d = self.data.devices[aDevice]
             self.addList("water_heater", d)
+            self.addList("sensor", d, haName=" Power Save", osoHotwaterType="POWER_SAVE")
+            self.addList("sensor", d, haName=" Extra Energy", osoHotwaterType="EXTRA_ENERGY")
+            self.addList("sensor", d, haName=" Power Load", osoHotwaterType="POWER_LOAD")
+            self.addList("sensor", d, haName=" Volume", osoHotwaterType="VOLUME")
+            self.addList("sensor", d, haName=" Tapping Capacity kWh", osoHotwaterType="TAPPING_CAPACITY_KWH")
+            self.addList("sensor", d, haName=" Capacity Mixed Water 40", osoHotwaterType="CAPACITY_MIXED_WATER_40")
+            self.addList("sensor", d, haName=" Heater State", osoHotwaterType="HEATER_STATE")
+            self.addList("sensor", d, haName=" Heater Mode", osoHotwaterType="HEATER_MODE")
+            self.addList("sensor", d, haName=" Optimization Mode", osoHotwaterType="OPTIMIZATION_MODE")
+            self.addList("sensor", d, haName=" Sub Optimization Mode", osoHotwaterType="SUB_OPTIMIZATION_MODE")
+            self.addList("sensor", d, haName=" V40 Min", osoHotwaterType="V40_MIN")
+            self.addList("sensor", d, haName=" Profile", osoHotwaterType="PROFILE")
 
         return self.deviceList
 
@@ -229,6 +242,10 @@ class OSOHotwaterSession:
                 "haName": display_name
             }
 
+            if kwargs.get("haName", "FALSE")[0] == " ":
+                kwargs["haName"] = display_name + kwargs["haName"]
+            else:
+                formatted_data["haName"] = display_name
             formatted_data.update(kwargs)
         except KeyError as e:
             self.logger.error(e)

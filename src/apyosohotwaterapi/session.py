@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 
 from aiohttp.web import HTTPException
 from apyosohotwaterapi import API
+from apyosohotwaterapi.helper.osohotwater_helper import OSOHotwaterHelper
 
 from .device_attributes import OSOHotwaterAttributes
 from .helper.const import OSOTOHA
@@ -40,12 +41,15 @@ class OSOHotwaterSession:
         """
 
         self.subscriptionKey = subscriptionKey
+
+        self.helper = OSOHotwaterHelper(self)
         self.api = API(osohotwaterSession=self, websession=websession)
         self.attr = OSOHotwaterAttributes(self)
         self.log = Logger(self)
         self.updateLock = asyncio.Lock()
         self.config = Map(
             {
+                "errorList": {},
                 "file": False,
                 "lastUpdated": datetime.now(),
                 "scanInterval": timedelta(seconds=120),
@@ -88,11 +92,8 @@ class OSOHotwaterSession:
 
         return subscriptionKey
 
-    async def updateData(self, device: dict):
+    async def updateData(self):
         """Get latest data for OSO Hotwater - rate limiting.
-
-        Args:
-            device (dict): Device requesting the update.
 
         Returns:
             boolean: True/False if update was successful

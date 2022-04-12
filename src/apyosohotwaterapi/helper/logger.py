@@ -25,12 +25,12 @@ class Logger:
         name = self.session.helper.getDeviceName(n_id)
 
         if error_type is False:
-            message = "Device offline could not update entity - " + name
+            message = "Device offline could not update entity - " + n_id
             if n_id not in self.session.config.errorList:
                 self.session.logger.warning(message)
                 self.session.config.errorList.update({n_id: datetime.now()})
         elif error_type == "Failed":
-            message = "ERROR - No data found for device - " + name
+            message = "ERROR - No data found for device - " + n_id
             if n_id not in self.session.config.errorList:
                 self.session.logger.error(message)
                 self.session.config.errorList.update({n_id: datetime.now()})

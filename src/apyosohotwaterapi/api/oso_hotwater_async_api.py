@@ -23,11 +23,6 @@ class OSOHotwaterApiAsync:
         self.baseUrl = "https://osowh-apimanagement.azure-api.net/water-heater-api"
         self.urls = {
             "devices": self.baseUrl + "/1/Device/All",
-            "tapping_capacity_kwh": self.baseUrl + "/1/Device/{0}/TappingCapacityKwh",
-            "actual_load": self.baseUrl + "/1/Device/{0}/ActualLoad",
-            "status": self.baseUrl + "/1/Device/{0}/Status",
-            "metadata": self.baseUrl + "/1/Device/{0}/Metadata",
-            "v40_min": self.baseUrl + "/1/Device/{0}/V40Min",
             "turn_on": self.baseUrl + "/1/Device/{0}/TurnOn?fullUtilizationParam={1}",
             "turn_off": self.baseUrl + "/1/Device/{0}/TurnOff?fullUtilizationParam={1}",
             "profile": self.baseUrl + "/1/Device/{0}/Profile",
@@ -39,6 +34,7 @@ class OSOHotwaterApiAsync:
             "Accept": "*/*"
         }
         self.timeout = 10
+        self.json_request = "No request to OSO Hotwater API"
         self.json_return = {
             "original": "No response to OSO Hotwater API request",
             "parsed": "No response to OSO Hotwater API request",
@@ -49,6 +45,7 @@ class OSOHotwaterApiAsync:
     async def request(self, method: str, url: str, **kwargs) -> ClientResponse:
         """Make a request."""
         data = kwargs.get("data", None)
+        self.json_request = data
 
         if not self.session.subscriptionKey:
             raise NoSubscriptionKey
@@ -61,6 +58,7 @@ class OSOHotwaterApiAsync:
             method, url, headers=self.headers, data=data
         ) as resp:
             await resp.json(content_type=None)
+
             self.json_return.update({"original": resp.status})
             self.json_return.update({"parsed": await resp.json(content_type=None)})
 
@@ -91,57 +89,7 @@ class OSOHotwaterApiAsync:
             await self.error()
 
         return self.json_return
-
-    async def getTappingCapacityKwh(self, device_id: str):
-        """Call the get tapping capacity kwh endpoint."""
-        url = self.urls["tapping_capacity_kwh"].format(device_id)
-        try:
-            await self.request("get", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
-
-        return self.json_return
-
-    async def getActualLoadKwh(self, device_id: str):
-        """Call the get actual load endpoint."""
-        url = self.urls["actual_load"].format(device_id)
-        try:
-            await self.request("get", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
-
-        return self.json_return
     
-    async def getStatus(self, device_id: str):
-        """Call the get status endpoint."""
-        url = self.urls["status"].format(device_id)
-        try:
-            await self.request("get", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
-
-        return self.json_return
-
-    async def getMetadata(self, device_id: str):
-        """Call the get metadata endpoint."""
-        url = self.urls["metadata"].format(device_id)
-        try:
-            await self.request("get", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
-
-        return self.json_return
-
-    async def getV40Min(self, device_id: str):
-        """Call the get V40 Min endpoint."""
-        url = self.urls["v40_min"].format(device_id)
-        try:
-            await self.request("get", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
-
-        return self.json_return
-
     async def turnOn(self, device_id: str, full_utilization: bool):
         """Call the get V40 Min endpoint."""
         url = self.urls["turn_on"].format(device_id, full_utilization)
@@ -167,7 +115,7 @@ class OSOHotwaterApiAsync:
         jsc = (
             "{"
             + ",".join(
-                ('"' + str(i) + '": ' '"' + str(t) + '" ' for i, t in kwargs.items())
+                ('"' + str(i) + '": ' + str(t) for i, t in kwargs.items())
             )
             + "}"
         )
@@ -185,7 +133,7 @@ class OSOHotwaterApiAsync:
         jsc = (
             "{"
             + ",".join(
-                ('"' + str(i) + '": ' '"' + str(t) + '" ' for i, t in kwargs.items())
+                ('"' + str(i) + '": ' + str(t) + ' ' for i, t in kwargs.items())
             )
             + "}"
         )

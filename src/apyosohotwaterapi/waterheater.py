@@ -1,6 +1,7 @@
 """OSO Hotwater Water Heater Module"""
 
-from sre_parse import State
+from array import array
+from numbers import Number
 from .helper.const import OSOTOHA
 
 class OSOWaterHeater:
@@ -33,6 +34,126 @@ class OSOWaterHeater:
 
         return final
 
+    async def turnOn(self, device: dict, fullUtilization: bool):
+        """Turn device on
+        
+        Args:
+            device (dict): Device to turn on.
+            fullUtilization (bool): Fully utilize device.
+        
+        Returns:
+            boolean: return True/False if turn on was successful.
+        """
+
+        final = False
+
+        try:
+            resp = await self.session.api.turnOn(device["device_id"], fullUtilization)
+            if resp["original"] == 200:
+                final = True
+                await self.session.updateData()
+
+        except Exception as e:
+            await self.session.log.error(e)
+
+        return final
+
+    async def turnOff(self, device: dict, fullUtilization: bool):
+        """Turn device off
+        
+        Args:
+            device (dict): Device to turn off.
+            fullUtilization (bool): Fully utilize device.
+        
+        Returns:
+            boolean: return True/False if turn off was successful.
+        """
+
+        final = False
+
+        try:
+            resp = await self.session.api.turnOff(device["device_id"], fullUtilization)
+            if resp["original"] == 200:
+                final = True
+                await self.session.updateData()
+
+        except Exception as e:
+            await self.session.log.error(e)
+
+        return final
+
+    async def setV40Min(self, device: dict, v40min: float):
+        """Set V40 Min levels for device
+        
+        Args:
+            device (dict): Device to turn off.
+            v40Min (float): quantity of water at 40°C.
+        
+        Returns:
+            boolean: return True/False if setting the V40Min was successful.
+        """
+
+        final = False
+
+        try:
+            resp = await self.session.api.setV40Min(device["device_id"], v40min)
+            if resp["original"] == 200:
+                final = True
+                await self.session.updateData()
+
+        except Exception as e:
+            await self.session.log.error(e)
+
+        return final
+
+    async def setOptimizationMode(self, device: dict, option: Number, subOption: Number):
+        """Set heater optimization mode
+        
+        Args:
+            device (dict): Device to turn off.
+            option (Number): heater optimization option.
+            subOption (Number): heater optimization sub option.
+        
+        Returns:
+            boolean: return True/False if setting the optimization mode was successful.
+        """
+        final = False
+
+        try:
+            resp = await self.session.api.setOptimizationMode(device["device_id"], optimizationOptions=option, optimizationSubOptions=subOption)
+            if resp["original"] == 200:
+                final = True
+                await self.session.updateData()
+
+        except Exception as e:
+            await self.session.log.error(e)
+
+        return final
+
+    async def setProfile(self, device: dict, profile: array):
+        """Set heater profile
+        
+        Args:
+            device (dict): Device to set profile to.
+            profile (array): array of temperatures for 24 hours (UTC).
+        
+        Returns:
+            boolean: return True/False if setting the profile was successful.
+        """
+        final = False
+
+        try:
+            resp = await self.session.api.setProfile(device["device_id"], hours=profile)
+            if resp["original"] == 200:
+                final = True
+                await self.session.updateData()
+
+        except Exception as e:
+            await self.session.log.error(e)
+
+        return final
+
+
 class WaterHeater(OSOWaterHeater):
     """Water heater class.
 
@@ -61,6 +182,7 @@ class WaterHeater(OSOWaterHeater):
 
         if(device["online"]):
             dev_data = {}
+            self.session.helper.deviceRecovered(device["device_id"])
             dev_data = {
                 "haName": device["haName"],
                 "haType": device["haType"],

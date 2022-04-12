@@ -18,7 +18,7 @@ class OSOHotwaterAttributes:
             session (object, optional): Session to interact with OSO Hotwater. Defaults to None.
         """
         self.session = session
-        self.session.log = Logger()
+        self.session.log = Logger(session)
         self.type = "Attribute"
 
     async def stateAttributes(self, device_id: str):

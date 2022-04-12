@@ -81,6 +81,7 @@ class Sensor(OSOHotwaterSensor):
         device.update({"online": await self.session.attr.onlineOffline(device["device_id"])})
 
         if device["online"]:
+            self.session.helper.deviceRecovered(device["device_id"])
             dev_data = {}
             dev_data = {
                 "haName": device["haName"],

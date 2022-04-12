@@ -1,2 +1,3 @@
 """__init__.py file."""
-from .logger import Logger
+from .osohotwater_helper import OSOHotwaterHelper # noqa: F401
+from .logger import Logger # noqa: F401

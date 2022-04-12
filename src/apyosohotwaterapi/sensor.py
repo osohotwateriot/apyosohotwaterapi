@@ -6,6 +6,8 @@ class OSOHotwaterSensor:
     """OSO Hotwater Sensor Code"""
 
     sensorType = "Sensor"
+    hotwaterType = "Hotwater"
+    hotwaterConnection = "HeaterConnection"
 
     async def getState(self, device: dict):
         """Get sensor state.
@@ -90,7 +92,7 @@ class Sensor(OSOHotwaterSensor):
                 "device_id": device["device_id"],
                 "device_type": device["device_type"],
                 "device_name": device["device_name"],
-                "available": self.online(device)
+                "available": await self.online(device)
             }
 
             if dev_data["osoHotwaterType"] in sensor_commands:

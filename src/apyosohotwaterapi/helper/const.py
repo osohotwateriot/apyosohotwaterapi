@@ -1,3 +1,4 @@
+"""OSO Hotwater constants."""
 # HTTP return codes.
 HTTP_OK = 200
 HTTP_CREATED = 201
@@ -16,14 +17,14 @@ HTTP_SERVICE_UNAVAILABLE = 503
 
 OSOTOHA = {
     "Hotwater": {
-        "HeaterState": { "on": "on", "off": "off" },
-        "DeviceConstants": { "minTemp": 10, "maxTemp": 80 },
-        "HeaterConnection": { None: False, "Connected": True },
-        "HeaterMode": { None: "off", "auto": "auto","manual": "manual","off": "off", "Legionella": "legionella","PowerSave": "powerSave", "ExtraEnergy": "extraEnergy", "Voltage": "voltage" },
-        "HeaterOptimizationMode": { None: "off" },
-        "HeaterSubOptimizationMode": { None: None },
-        "HeaterPowerSaveMode": { None: "off", False: "off", True: "on" },
-        "HeaterExtraEnergyMode": { None: "off", False: "off", True: "on" },
+        "HeaterState": {"on": "on", "off": "off"},
+        "DeviceConstants": {"minTemp": 10, "maxTemp": 80},
+        "HeaterConnection": {None: False, "Connected": True},
+        "HeaterMode": {None: "off", "auto": "auto", "manual": "manual", "off": "off", "Legionella": "legionella", "PowerSave": "powerSave", "ExtraEnergy": "extraEnergy", "Voltage": "voltage"},
+        "HeaterOptimizationMode": {None: "off"},
+        "HeaterSubOptimizationMode": {None: None},
+        "HeaterPowerSaveMode": {None: "off", False: "off", True: "on"},
+        "HeaterExtraEnergyMode": {None: "off", False: "off", True: "on"},
     }
 }
 

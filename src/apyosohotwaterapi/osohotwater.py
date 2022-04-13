@@ -1,4 +1,4 @@
-"""Start OSO Hotwater Session"""
+"""Start OSO Hotwater Session."""
 
 import sys
 import traceback
@@ -25,8 +25,9 @@ logger.add(
     home + "/pyosohotwaterapi_error.log", filter=lambda record: record["level"].name == "ERROR"
 )
 
+
 def exception_handler(exctype, value, tb):
-    """Custom exception handler.
+    """Handle custom exceptions.
 
     Args:
         exctype ([type]): [description]
@@ -47,8 +48,10 @@ def exception_handler(exctype, value, tb):
 
 sys.excepthook = exception_handler
 
+
 def trace_debug(frame, event, arg):
     """Trace functions.
+
     Args:
         frame (object): The current frame being debugged.
         event (str): The event type
@@ -77,18 +80,19 @@ def trace_debug(frame, event, arg):
 
         return trace_debug
 
+
 class OSOHotwater(OSOHotwaterSession):
-    """OSO Hotwater class
-    
+    """OSO Hotwater class.
+
     Args:
         OSOHotwaterSession (object): Interact with OSO Hotwater
     """
 
     def __init__(
-        self,
-        subscriptionKey,
-        websession: Optional[ClientSession] = None):
-
+            self,
+            subscriptionKey,
+            websession: Optional[ClientSession] = None):
+        """Initialize OSO Hotwater."""
         super().__init__(subscriptionKey=subscriptionKey, websession=websession)
         self.session = self
         self.attr = OSOHotwaterAttributes(self.session)

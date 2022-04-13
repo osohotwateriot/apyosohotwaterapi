@@ -1,6 +1,7 @@
-"""OSO Hotwater Device Attribute Module"""
+"""OSO Hotwater Device Attribute Module."""
 from .helper.logger import Logger
 from .helper.const import OSOTOHA
+
 
 class OSOHotwaterAttributes:
     """Devcie Attributes Code."""
@@ -12,8 +13,8 @@ class OSOHotwaterAttributes:
     hotwaterSubOptimizationMode = "HeaterSubOptimizationMode"
 
     def __init__(self, session: object = None):
-        """Initialise attributes
-        
+        """Initialise attributes.
+
         Args:
             session (object, optional): Session to interact with OSO Hotwater. Defaults to None.
         """
@@ -23,7 +24,7 @@ class OSOHotwaterAttributes:
 
     async def stateAttributes(self, device_id: str):
         """Get HS State Attributes.
-        
+
         Args:
             device_id (str): The id of the device
 
@@ -430,7 +431,7 @@ class OSOHotwaterAttributes:
         return level
 
     async def getProfile(self, device_id: str):
-        """Get the 24 hour profile of the heater. (UTC)
+        """Get the 24 hour profile of the heater (UTC).
 
         Args:
             device_id (str): The id of the device

@@ -1,4 +1,4 @@
-"""OSO Hotwater Session Module"""
+"""OSO Hotwater Session Module."""
 import asyncio
 import copy
 import operator
@@ -20,9 +20,10 @@ from .helper.osohotwater_exceptions import (
 from .helper.logger import Logger
 from .helper.map import Map
 
+
 class OSOHotwaterSession:
-    """OSO Hotwater Session Code
-    
+    """OSO Hotwater Session Code.
+
     Raises:
         HTTPException: HTTP error has occured
 
@@ -35,11 +36,11 @@ class OSOHotwaterSession:
 
     ):
         """Initialise the base variable values.
+
         Args:
             subscriptionKey (str, reqired): OSO Hotwater user subscription key.
             websession (object, optional): Websession for api calls. Defaults to None.
         """
-
         self.subscriptionKey = subscriptionKey
 
         self.helper = OSOHotwaterHelper(self)
@@ -111,8 +112,8 @@ class OSOHotwaterSession:
         return updated
 
     async def getDevices(self):
-        """Get latest device list for the user
-        
+        """Get latest device list for the user.
+
         Raises:
             HTTPException: HTTP error has occured updating the devices.
 
@@ -145,7 +146,7 @@ class OSOHotwaterSession:
         return get_devices_successful
 
     async def startSession(self, config: dict = {}):
-        """Setup the OSO Hotwater platform.
+        """Start session to the OSO Hotwater platform.
 
         Args:
             config (dict, optional): Configuration for Home Assistant to use. Defaults to {}.
@@ -166,7 +167,7 @@ class OSOHotwaterSession:
         await self.updateInterval(
             config.get("options", {}).get("scan_interval", self.config.scanInterval)
         )
-        
+
         if config != {}:
             if config["api_key"] is not None and not self.config.file:
                 await self.updateSubscriptionKey(config["api_key"])
@@ -191,7 +192,7 @@ class OSOHotwaterSession:
         """
         self.deviceList["sensor"] = []
         self.deviceList["water_heater"] = []
-        
+
         for aDevice in self.data["devices"]:
             d = self.data.devices[aDevice]
             self.addList("water_heater", d)

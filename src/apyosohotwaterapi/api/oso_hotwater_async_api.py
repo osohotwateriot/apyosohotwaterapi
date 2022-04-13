@@ -2,7 +2,7 @@
 
 import operator
 from typing import Optional
-from numpy import full, number
+from numpy import number
 
 import urllib3
 from aiohttp import ClientResponse, ClientSession, web_exceptions
@@ -12,14 +12,15 @@ from ..helper.osohotwater_exceptions import NoSubscriptionKey
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 class OSOHotwaterApiAsync:
-    """OSO Hotwater API Code"""
+    """OSO Hotwater API Code."""
 
     def __init__(
-        self,
-        osohotwaterSession=None,
-        websession: Optional[ClientSession] = None):
-
+            self,
+            osohotwaterSession=None,
+            websession: Optional[ClientSession] = None):
+        """Init the api."""
         self.baseUrl = "https://osowh-apimanagement.azure-api.net/water-heater-api"
         self.urls = {
             "devices": self.baseUrl + "/1/Device/All",
@@ -49,9 +50,9 @@ class OSOHotwaterApiAsync:
 
         if not self.session.subscriptionKey:
             raise NoSubscriptionKey
-        
+
         self.headers.update(
-            { "Ocp-Apim-Subscription-Key": self.session.subscriptionKey }
+            {"Ocp-Apim-Subscription-Key": self.session.subscriptionKey}
         )
 
         async with self.websession.request(
@@ -89,7 +90,7 @@ class OSOHotwaterApiAsync:
             await self.error()
 
         return self.json_return
-    
+
     async def turnOn(self, device_id: str, full_utilization: bool):
         """Call the get V40 Min endpoint."""
         url = self.urls["turn_on"].format(device_id, full_utilization)
@@ -156,5 +157,5 @@ class OSOHotwaterApiAsync:
         return self.json_return
 
     async def error(self):
-        """An error has occurred iteracting with the OSO Hotwater API."""
+        """Error occurrs iteracting with the OSO Hotwater API."""
         raise web_exceptions.HTTPError

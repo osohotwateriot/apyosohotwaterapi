@@ -1,12 +1,13 @@
-"""OSO Hotwater Water Heater Module"""
+"""OSO Hotwater Water Heater Module."""
 
 from array import array
 from numbers import Number
 from .helper.const import OSOTOHA
 
+
 class OSOWaterHeater:
-    """Water Heater Code
-    
+    """Water Heater Code.
+
     Returns:
         object: Water Heater Object
     """
@@ -35,16 +36,15 @@ class OSOWaterHeater:
         return final
 
     async def turnOn(self, device: dict, fullUtilization: bool):
-        """Turn device on
-        
+        """Turn device on.
+
         Args:
             device (dict): Device to turn on.
             fullUtilization (bool): Fully utilize device.
-        
+
         Returns:
             boolean: return True/False if turn on was successful.
         """
-
         final = False
 
         try:
@@ -59,16 +59,15 @@ class OSOWaterHeater:
         return final
 
     async def turnOff(self, device: dict, fullUtilization: bool):
-        """Turn device off
-        
+        """Turn device off.
+
         Args:
             device (dict): Device to turn off.
             fullUtilization (bool): Fully utilize device.
-        
+
         Returns:
             boolean: return True/False if turn off was successful.
         """
-
         final = False
 
         try:
@@ -83,16 +82,15 @@ class OSOWaterHeater:
         return final
 
     async def setV40Min(self, device: dict, v40min: float):
-        """Set V40 Min levels for device
-        
+        """Set V40 Min levels for device.
+
         Args:
             device (dict): Device to turn off.
             v40Min (float): quantity of water at 40°C.
-        
+
         Returns:
             boolean: return True/False if setting the V40Min was successful.
         """
-
         final = False
 
         try:
@@ -107,13 +105,13 @@ class OSOWaterHeater:
         return final
 
     async def setOptimizationMode(self, device: dict, option: Number, subOption: Number):
-        """Set heater optimization mode
-        
+        """Set heater optimization mode.
+
         Args:
             device (dict): Device to turn off.
             option (Number): heater optimization option.
             subOption (Number): heater optimization sub option.
-        
+
         Returns:
             boolean: return True/False if setting the optimization mode was successful.
         """
@@ -131,12 +129,12 @@ class OSOWaterHeater:
         return final
 
     async def setProfile(self, device: dict, profile: array):
-        """Set heater profile
-        
+        """Set heater profile.
+
         Args:
             device (dict): Device to set profile to.
             profile (array): array of temperatures for 24 hours (UTC).
-        
+
         Returns:
             boolean: return True/False if setting the profile was successful.
         """
@@ -178,18 +176,18 @@ class WaterHeater(OSOWaterHeater):
         Returns:
             dict: Updated device.
         """
-        device.update({ "online": await self.session.attr.onlineOffline(device["device_id"])})
+        device.update({"online": await self.session.attr.onlineOffline(device["device_id"])})
 
         if(device["online"]):
             dev_data = {}
-            self.session.helper.deviceRecovered(device["device_id"])
+            self.session.helper.device_recovered(device["device_id"])
             dev_data = {
                 "haName": device["haName"],
                 "haType": device["haType"],
                 "device_id": device["device_id"],
                 "device_type": device["device_type"],
                 "device_name": device["device_name"],
-                "status": { "current_operation": await self.getHeaterState(device) },
+                "status": {"current_operation": await self.getHeaterState(device)},
                 "attributes": await self.session.attr.stateAttributes(
                     device["device_id"]
                 ),
@@ -198,9 +196,7 @@ class WaterHeater(OSOWaterHeater):
             self.session.devices.update({device["device_id"]: dev_data})
             return self.session.devices[device["device_id"]]
         else:
-            await self.session.log.errorCheck(
+            await self.session.log.error_check(
                 device["device_id"], "ERROR", device["online"]
             )
             return device
-
-

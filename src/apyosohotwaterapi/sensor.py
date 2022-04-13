@@ -1,9 +1,10 @@
-"""OSO Hotwater Sensor Module"""
+"""OSO Hotwater Sensor Module."""
 
 from .helper.const import OSOTOHA, sensor_commands
 
+
 class OSOHotwaterSensor:
-    """OSO Hotwater Sensor Code"""
+    """OSO Hotwater Sensor Code."""
 
     sensorType = "Sensor"
     hotwaterType = "Hotwater"
@@ -11,14 +12,13 @@ class OSOHotwaterSensor:
 
     async def getState(self, device: dict):
         """Get sensor state.
-        
+
         Args:
             device (dict): Device to get state off.
 
         Returns:
-            srt: State of device    
+            srt: State of device
         """
-
         state = None
         final = None
 
@@ -55,23 +55,24 @@ class OSOHotwaterSensor:
 
         return final
 
+
 class Sensor(OSOHotwaterSensor):
-    """Home Assistant sensor code
-    
+    """Home Assistant sensor code.
+
     Args:
         OSOHotwaterSensor (object): OSO Hotwater sensor code.
     """
 
     def __init__(self, session: object = None):
-        """Initialise sensor
-        
+        """Initialise sensor.
+
         Args:
             session (object, optional): session to interact with OSO Hotwater. Defaults no None.
         """
         self.session = session
 
     async def getSensor(self, device: dict):
-        """Gets updated sensor data.
+        """Get updated sensor data.
 
         Args:
             device (dict): Device to update.
@@ -79,11 +80,10 @@ class Sensor(OSOHotwaterSensor):
         Returns:
             dict: Updated device.
         """
-
         device.update({"online": await self.session.attr.onlineOffline(device["device_id"])})
 
         if device["online"]:
-            self.session.helper.deviceRecovered(device["device_id"])
+            self.session.helper.device_recovered(device["device_id"])
             dev_data = {}
             dev_data = {
                 "haName": device["haName"],
@@ -106,12 +106,7 @@ class Sensor(OSOHotwaterSensor):
             self.session.sensors.update({device["device_id"]: dev_data})
             return self.session.sensors[device["device_id"]]
         else:
-            await self.session.log.errorCheck(
+            await self.session.log.error_check(
                 device["device_id"], "ERROR", device["deviceData"]["online"]
             )
             return device
-            
-
-
-
-

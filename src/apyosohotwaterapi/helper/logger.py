@@ -1,4 +1,4 @@
-"""Custom Logging Module"""
+"""Custom Logging Module."""
 
 import inspect
 from datetime import datetime
@@ -19,10 +19,9 @@ class Logger:
             f" with exception {e.__class__} {e}"
         )
 
-    async def errorCheck(self, n_id, n_type, error_type, **kwargs):
+    async def error_check(self, n_id, n_type, error_type, **kwargs):
         """Error has occurred."""
         message = None
-        name = self.session.helper.getDeviceName(n_id)
 
         if error_type is False:
             message = "Device offline could not update entity - " + n_id

@@ -6,8 +6,8 @@ from os.path import expanduser
 from typing import Optional
 
 from aiohttp import ClientSession
-from apyosohotwaterapi.sensor import Sensor
 from loguru import logger
+from apyosohotwaterapi.sensor import Sensor
 
 from .session import OSOHotwaterSession
 from .waterheater import WaterHeater
@@ -27,6 +27,8 @@ logger.add(
 
 
 def exception_handler(exctype, value, tb):
+    # pylint: disable=unused-argument
+    # pylint: disable=invalid-name
     """Handle custom exceptions.
 
     Args:
@@ -60,12 +62,12 @@ def trace_debug(frame, event, arg):
         object: returns itself as per tracing docs
     """
     if "pyosohotwaterapi/" in str(frame):
-        co = frame.f_code
-        func_name = co.co_name
+        code = frame.f_code
+        func_name = code.co_name
         func_line_no = frame.f_lineno
         if func_name in debug:
             if event == "call":
-                func_filename = co.co_filename.rsplit("/", 1)
+                func_filename = code.co_filename.rsplit("/", 1)
                 caller = frame.f_back
                 caller_line_no = caller.f_lineno
                 caller_filename = caller.f_code.co_filename.rsplit("/", 1)
@@ -80,6 +82,8 @@ def trace_debug(frame, event, arg):
 
         return trace_debug
 
+    return None
+
 
 class OSOHotwater(OSOHotwaterSession):
     """OSO Hotwater class.
@@ -90,10 +94,10 @@ class OSOHotwater(OSOHotwaterSession):
 
     def __init__(
             self,
-            subscriptionKey,
+            subscription_key,
             websession: Optional[ClientSession] = None):
         """Initialize OSO Hotwater."""
-        super().__init__(subscriptionKey=subscriptionKey, websession=websession)
+        super().__init__(subscription_key=subscription_key, websession=websession)
         self.session = self
         self.attr = OSOHotwaterAttributes(self.session)
         self.hotwater = WaterHeater(self.session)
@@ -103,6 +107,9 @@ class OSOHotwater(OSOHotwaterSession):
             sys.settrace(trace_debug)
 
     def setDebugging(self, debugger: list):
+        # pylint: disable=no-self-use
+        # pylint: disable=global-statement
+        # pylint: disable=invalid-name
         """Set function to debug.
 
         Args:

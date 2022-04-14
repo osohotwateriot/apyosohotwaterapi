@@ -1,7 +1,7 @@
 """OSO Hotwater Helper code."""
 
 
-class OSOHotwaterHelper:
+class OSOHotwaterHelper:  # pylint: disable=too-few-public-methods
     """OSO Hotwater helper class."""
 
     def __init__(self, session: object = None):
@@ -18,5 +18,5 @@ class OSOHotwaterHelper:
         Args:
             n_id (str): ID of the device
         """
-        if n_id in self.session.config.errorList:
-            self.session.config.errorList.pop(n_id)
+        if n_id in self.session.config.error_list:
+            self.session.config.error_list.pop(n_id)

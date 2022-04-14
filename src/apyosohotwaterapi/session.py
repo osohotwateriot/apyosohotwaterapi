@@ -22,6 +22,8 @@ from .helper.map import Map
 
 
 class OSOHotwaterSession:
+    # pylint: disable=no-member
+    # pylint: disable=too-many-instance-attributes
     """OSO Hotwater Session Code.
 
     Raises:
@@ -32,28 +34,28 @@ class OSOHotwaterSession:
     """
 
     def __init__(
-        self, subscriptionKey: str, websession: object = None
+        self, subscription_key: str, websession: object = None
 
     ):
         """Initialise the base variable values.
 
         Args:
-            subscriptionKey (str, reqired): OSO Hotwater user subscription key.
+            subscription_key (str, reqired): OSO Hotwater user subscription key.
             websession (object, optional): Websession for api calls. Defaults to None.
         """
-        self.subscriptionKey = subscriptionKey
+        self.subscription_key = subscription_key
 
         self.helper = OSOHotwaterHelper(self)
-        self.api = API(osohotwaterSession=self, websession=websession)
+        self.api = API(osohotwater_session=self, websession=websession)
         self.attr = OSOHotwaterAttributes(self)
         self.log = Logger(self)
-        self.updateLock = asyncio.Lock()
+        self.update_lock = asyncio.Lock()
         self.config = Map(
             {
-                "errorList": {},
+                "error_list": {},
                 "file": False,
-                "lastUpdated": datetime.now(),
-                "scanInterval": timedelta(seconds=120),
+                "last_updated": datetime.now(),
+                "scan_interval": timedelta(seconds=120),
                 "sensors": False,
             }
         )
@@ -64,54 +66,54 @@ class OSOHotwaterSession:
         )
         self.devices = {}
         self.sensors = {}
-        self.deviceList = {}
+        self.device_list = {}
 
-    async def updateInterval(self, new_interval: timedelta):
+    async def update_interval(self, new_interval: timedelta):
         """Update the scan interval.
 
         Args:
             new_interval (int): New interval for polling.
         """
-        if type(new_interval) == int:
+        if isinstance(new_interval, int):
             new_interval = timedelta(seconds=new_interval)
 
         interval = new_interval
         if interval < timedelta(seconds=15):
             interval = timedelta(seconds=15)
-        self.config.scanInterval = interval
+        self.config.scan_interval = interval
 
-    async def updateSubscriptionKey(self, subscriptionKey: str):
+    async def update_subscription_key(self, subscription_key: str):
         """Update subscription key.
 
         Args:
-            subscriptionKey (dict): The user subscription key.
+            subscription_key (dict): The user subscription key.
 
         Returns:
             str: Subscription key
         """
-        self.subscriptionKey = subscriptionKey
+        self.subscription_key = subscription_key
 
-        return subscriptionKey
+        return subscription_key
 
-    async def updateData(self):
+    async def update_data(self):
         """Get latest data for OSO Hotwater - rate limiting.
 
         Returns:
             boolean: True/False if update was successful
         """
-        await self.updateLock.acquire()
+        await self.update_lock.acquire()
         updated = False
         try:
-            ep = self.config.lastUpdate + self.config.scanInterval
-            if datetime.now() >= ep:
-                await self.getDevices()
+            next_update = self.config.last_update + self.config.scan_interval
+            if datetime.now() >= next_update:
+                await self.get_devices()
                 updated = True
         finally:
-            self.updateLock.release()
+            self.update_lock.release()
 
         return updated
 
-    async def getDevices(self):
+    async def get_devices(self):
         """Get latest device list for the user.
 
         Raises:
@@ -124,28 +126,30 @@ class OSOHotwaterSession:
         api_resp_d = None
 
         try:
-            api_resp_d = await self.api.getDevices()
+            api_resp_d = await self.api.get_devices()
             if operator.contains(str(api_resp_d["original"]), "20") is False:
                 raise HTTPException
-            elif api_resp_d["parsed"] is None:
+
+            if api_resp_d["parsed"] is None:
                 raise OSOHotwaterApiError
 
             api_resp_p = api_resp_d["parsed"]
-            tmpDevices = {}
-            for aDevice in api_resp_p:
-                tmpDevices.update({aDevice["deviceId"]: aDevice})
+            tmp_devices = {}
+            for a_device in api_resp_p:
+                tmp_devices.update({a_device["deviceId"]: a_device})
 
-            if len(tmpDevices) > 0:
-                self.data.devices = copy.deepcopy(tmpDevices)
+            if len(tmp_devices) > 0:
+                self.data.devices = copy.deepcopy(tmp_devices)
 
-            self.config.lastUpdate = datetime.now()
+            self.config.last_update = datetime.now()
             get_devices_successful = True
         except (OSError, RuntimeError, OSOHotwaterApiError, ConnectionError, HTTPException):
             get_devices_successful = False
 
         return get_devices_successful
 
-    async def startSession(self, config: dict = {}):
+    async def start_session(self, config: dict = {}):
+        # pylint: disable=unused-variable
         """Start session to the OSO Hotwater platform.
 
         Args:
@@ -159,63 +163,83 @@ class OSOHotwaterSession:
             list: List of devices
         """
         custom_component = False
-        for file, line, w1, w2 in traceback.extract_stack():
+        for file, line, function_name, text in traceback.extract_stack():
             if "/custom_components/" in file:
                 custom_component = True
 
         self.config.sensors = custom_component
-        await self.updateInterval(
-            config.get("options", {}).get("scan_interval", self.config.scanInterval)
+        await self.update_interval(
+            config.get("options", {}).get("scan_interval", self.config.scan_interval)
         )
 
         if config != {}:
             if config["api_key"] is not None and not self.config.file:
-                await self.updateSubscriptionKey(config["api_key"])
+                await self.update_subscription_key(config["api_key"])
             elif not self.config.file:
                 raise OSOHotwaterUnknownConfiguration
 
         try:
-            await self.getDevices()
+            await self.get_devices()
         except HTTPException:
             return HTTPException
 
         if self.data.devices == {}:
             raise OSOHotwaterReauthRequired
 
-        return await self.createDevices()
+        return await self.create_devices()
 
-    async def createDevices(self):
+    async def create_devices(self):
         """Create list of devices.
 
         Returns:
             list: List of devices
         """
-        self.deviceList["sensor"] = []
-        self.deviceList["water_heater"] = []
+        self.device_list["sensor"] = []
+        self.device_list["water_heater"] = []
 
-        for aDevice in self.data["devices"]:
-            d = self.data.devices[aDevice]
-            self.addList("water_heater", d)
-            self.addList("sensor", d, haName=" Power Save", osoHotwaterType="POWER_SAVE")
-            self.addList("sensor", d, haName=" Extra Energy", osoHotwaterType="EXTRA_ENERGY")
-            self.addList("sensor", d, haName=" Power Load", osoHotwaterType="POWER_LOAD")
-            self.addList("sensor", d, haName=" Volume", osoHotwaterType="VOLUME")
-            self.addList("sensor", d, haName=" Tapping Capacity kWh", osoHotwaterType="TAPPING_CAPACITY_KWH")
-            self.addList("sensor", d, haName=" Capacity Mixed Water 40", osoHotwaterType="CAPACITY_MIXED_WATER_40")
-            self.addList("sensor", d, haName=" Heater State", osoHotwaterType="HEATER_STATE")
-            self.addList("sensor", d, haName=" Heater Mode", osoHotwaterType="HEATER_MODE")
-            self.addList("sensor", d, haName=" Optimization Mode", osoHotwaterType="OPTIMIZATION_MODE")
-            self.addList("sensor", d, haName=" Sub Optimization Mode", osoHotwaterType="SUB_OPTIMIZATION_MODE")
-            self.addList("sensor", d, haName=" V40 Min", osoHotwaterType="V40_MIN")
-            self.addList("sensor", d, haName=" Profile", osoHotwaterType="PROFILE")
+        for a_device in self.data["devices"]:
+            device = self.data.devices[a_device]
+            self.add_list("water_heater", device)
+            self.add_list("sensor", device, haName=" Power Save", osoHotwaterType="POWER_SAVE")
+            self.add_list("sensor", device, haName=" Extra Energy", osoHotwaterType="EXTRA_ENERGY")
+            self.add_list("sensor", device, haName=" Power Load", osoHotwaterType="POWER_LOAD")
+            self.add_list("sensor", device, haName=" Volume", osoHotwaterType="VOLUME")
+            self.add_list(
+                "sensor",
+                device,
+                haName=" Tapping Capacity kWh",
+                osoHotwaterType="TAPPING_CAPACITY_KWH"
+                )
+            self.add_list(
+                "sensor",
+                device,
+                haName=" Capacity Mixed Water 40",
+                osoHotwaterType="CAPACITY_MIXED_WATER_40"
+                )
+            self.add_list("sensor", device, haName=" Heater State", osoHotwaterType="HEATER_STATE")
+            self.add_list("sensor", device, haName=" Heater Mode", osoHotwaterType="HEATER_MODE")
+            self.add_list(
+                "sensor",
+                device,
+                haName=" Optimization Mode",
+                osoHotwaterType="OPTIMIZATION_MODE"
+                )
+            self.add_list(
+                "sensor",
+                device,
+                haName=" Sub Optimization Mode",
+                osoHotwaterType="SUB_OPTIMIZATION_MODE"
+                )
+            self.add_list("sensor", device, haName=" V40 Min", osoHotwaterType="V40_MIN")
+            self.add_list("sensor", device, haName=" Profile", osoHotwaterType="PROFILE")
 
-        return self.deviceList
+        return self.device_list
 
-    def addList(self, type: str, data: dict, **kwargs: dict):
+    def add_list(self, entity_type: str, data: dict, **kwargs: dict):
         """Add entity to the list.
 
         Args:
-            type (str): Type of entity
+            entity_type (str): Type of entity
             data (dict): Information to create entity.
 
         Returns:
@@ -223,8 +247,8 @@ class OSOHotwaterSession:
         """
         formatted_data = {}
         display_name = data.get("deviceName", "Water Heater")
-        connectionStatus = data.get("connectionState", {}).get("connectionState", "Unknown")
-        online = OSOTOHA["Hotwater"]["HeaterConnection"].get(connectionStatus, False)
+        connection_status = data.get("connectionState", {}).get("connectionState", "Unknown")
+        online = OSOTOHA["Hotwater"]["HeaterConnection"].get(connection_status, False)
 
         try:
             formatted_data = {
@@ -240,7 +264,7 @@ class OSOHotwaterSession:
                 "optimization_suboption": data.get("optimizationSubOption", ""),
                 "v40_min": data.get("v40Min", 0),
                 "profile": data.get("profile", []),
-                "haType": type,
+                "haType": entity_type,
                 "haName": display_name
             }
 
@@ -249,13 +273,14 @@ class OSOHotwaterSession:
             else:
                 formatted_data["haName"] = display_name
             formatted_data.update(kwargs)
-        except KeyError as e:
-            self.logger.error(e)
+        except KeyError as exception:
+            self.logger.error(exception)
 
-        self.deviceList[type].append(formatted_data)
+        self.device_list[entity_type].append(formatted_data)
 
     @staticmethod
     def epochTime(date_time: any, pattern: str, action: str):
+        # pylint: disable=invalid-name
         """date/time conversion to epoch.
 
         Args:
@@ -270,6 +295,6 @@ class OSOHotwaterSession:
             pattern = "%d.%m.%Y %H:%M:%S"
             epochtime = int(time.mktime(time.strptime(str(date_time), pattern)))
             return epochtime
-        elif action == "from_epoch":
-            date = datetime.fromtimestamp(int(date_time)).strftime(pattern)
-            return date
+
+        date = datetime.fromtimestamp(int(date_time)).strftime(pattern)
+        return date

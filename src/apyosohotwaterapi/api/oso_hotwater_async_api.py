@@ -5,7 +5,8 @@ from typing import Optional
 from numpy import number
 
 import urllib3
-from aiohttp import ClientResponse, ClientSession, web_exceptions
+from aiohttp import ClientResponse, ClientSession
+from aiohttp.web_exceptions import HTTPError
 
 from ..helper.const import HTTP_UNAUTHORIZED, HTTP_FORBIDDEN
 from ..helper.osohotwater_exceptions import NoSubscriptionKey
@@ -18,41 +19,39 @@ class OSOHotwaterApiAsync:
 
     def __init__(
             self,
-            osohotwaterSession=None,
+            osohotwater_session=None,
             websession: Optional[ClientSession] = None):
         """Init the api."""
-        self.baseUrl = "https://osowh-apimanagement.azure-api.net/water-heater-api"
+        self.base_url = "https://osowh-apimanagement.azure-api.net/water-heater-api"
         self.urls = {
-            "devices": self.baseUrl + "/1/Device/All",
-            "turn_on": self.baseUrl + "/1/Device/{0}/TurnOn?fullUtilizationParam={1}",
-            "turn_off": self.baseUrl + "/1/Device/{0}/TurnOff?fullUtilizationParam={1}",
-            "profile": self.baseUrl + "/1/Device/{0}/Profile",
-            "optimization_mode": self.baseUrl + "/1/Device/{0}/OptimizationMode",
-            "set_v40_min": self.baseUrl + "/1/Device/{0}/V40Min/{1}",
+            "devices": self.base_url + "/1/Device/All",
+            "turn_on": self.base_url + "/1/Device/{0}/TurnOn?fullUtilizationParam={1}",
+            "turn_off": self.base_url + "/1/Device/{0}/TurnOff?fullUtilizationParam={1}",
+            "profile": self.base_url + "/1/Device/{0}/Profile",
+            "optimization_mode": self.base_url + "/1/Device/{0}/OptimizationMode",
+            "set_v40_min": self.base_url + "/1/Device/{0}/V40Min/{1}",
         }
         self.headers = {
             "content-type": "application/json",
             "Accept": "*/*"
         }
         self.timeout = 10
-        self.json_request = "No request to OSO Hotwater API"
         self.json_return = {
             "original": "No response to OSO Hotwater API request",
             "parsed": "No response to OSO Hotwater API request",
         }
-        self.session = osohotwaterSession
+        self.session = osohotwater_session
         self.websession = ClientSession() if websession is None else websession
 
     async def request(self, method: str, url: str, **kwargs) -> ClientResponse:
         """Make a request."""
         data = kwargs.get("data", None)
-        self.json_request = data
 
-        if not self.session.subscriptionKey:
+        if not self.session.subscription_key:
             raise NoSubscriptionKey
 
         self.headers.update(
-            {"Ocp-Apim-Subscription-Key": self.session.subscriptionKey}
+            {"Ocp-Apim-Subscription-Key": self.session.subscription_key}
         )
 
         async with self.websession.request(
@@ -65,7 +64,8 @@ class OSOHotwaterApiAsync:
 
         if operator.contains(str(resp.status), "20"):
             return True
-        elif resp.status == HTTP_UNAUTHORIZED:
+
+        if resp.status == HTTP_UNAUTHORIZED:
             self.session.logger.error(
                 f"Subscription key not authorized when calling {url} - "
                 f"HTTP status is - {resp.status}"
@@ -81,37 +81,39 @@ class OSOHotwaterApiAsync:
                 f"HTTP status is - {resp.status}"
             )
 
-    async def getDevices(self):
+        return False
+
+    async def get_devices(self):
         """Call the get devices endpoint."""
         url = self.urls["devices"]
         try:
             await self.request("get", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
 
         return self.json_return
 
-    async def turnOn(self, device_id: str, full_utilization: bool):
+    async def turn_on(self, device_id: str, full_utilization: bool):
         """Call the get V40 Min endpoint."""
         url = self.urls["turn_on"].format(device_id, full_utilization)
         try:
             await self.request("post", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
 
         return self.json_return
 
-    async def turnOff(self, device_id: str, full_utilization: bool):
+    async def turn_off(self, device_id: str, full_utilization: bool):
         """Call the get V40 Min endpoint."""
         url = self.urls["turn_off"].format(device_id, full_utilization)
         try:
             await self.request("post", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
 
         return self.json_return
 
-    async def setProfile(self, device_id: str, **kwargs):
+    async def set_profile(self, device_id: str, **kwargs):
         """Call the get V40 Min endpoint."""
         jsc = (
             "{"
@@ -124,12 +126,12 @@ class OSOHotwaterApiAsync:
         url = self.urls["profile"].format(device_id)
         try:
             await self.request("put", url, data=jsc)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
 
         return self.json_return
 
-    async def setOptimizationMode(self, device_id: str, **kwargs):
+    async def set_optimization_mode(self, device_id: str, **kwargs):
         """Call the get V40 Min endpoint."""
         jsc = (
             "{"
@@ -141,21 +143,17 @@ class OSOHotwaterApiAsync:
         url = self.urls["optimization_mode"].format(device_id)
         try:
             await self.request("put", url, data=jsc)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
 
         return self.json_return
 
-    async def setV40Min(self, device_id: str, v40_min: number):
+    async def set_v40_min(self, device_id: str, v40_min: number):
         """Call the get V40 Min endpoint."""
         url = self.urls["set_v40_min"].format(device_id, v40_min)
         try:
             await self.request("put", url)
-        except (OSError, RuntimeError, ZeroDivisionError):
-            await self.error()
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
 
         return self.json_return
-
-    async def error(self):
-        """Error occurrs iteracting with the OSO Hotwater API."""
-        raise web_exceptions.HTTPError

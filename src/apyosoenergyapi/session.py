@@ -1,4 +1,4 @@
-"""OSO Hotwater Session Module."""
+"""OSO Energy Session Module."""
 import asyncio
 import copy
 import operator
@@ -7,24 +7,24 @@ import traceback
 from datetime import datetime, timedelta
 
 from aiohttp.web import HTTPException
-from apyosohotwaterapi import API
-from apyosohotwaterapi.helper.osohotwater_helper import OSOHotwaterHelper
+from apyosoenergyapi import API
+from apyosoenergyapi.helper.osoenergy_helper import OSOEnergyHelper
 
-from .device_attributes import OSOHotwaterAttributes
+from .device_attributes import OSOEnergyAttributes
 from .helper.const import OSOTOHA
-from .helper.osohotwater_exceptions import (
-    OSOHotwaterApiError,
-    OSOHotwaterReauthRequired,
-    OSOHotwaterUnknownConfiguration,
+from .helper.osoenergy_exceptions import (
+    OSOEnergyApiError,
+    OSOEnergyReauthRequired,
+    OSOEnergyUnknownConfiguration,
 )
 from .helper.logger import Logger
 from .helper.map import Map
 
 
-class OSOHotwaterSession:
+class OSOEnergySession:
     # pylint: disable=no-member
     # pylint: disable=too-many-instance-attributes
-    """OSO Hotwater Session Code.
+    """OSO Energy Session Code.
 
     Raises:
         HTTPException: HTTP error has occured
@@ -40,14 +40,14 @@ class OSOHotwaterSession:
         """Initialise the base variable values.
 
         Args:
-            subscription_key (str, reqired): OSO Hotwater user subscription key.
+            subscription_key (str, reqired): OSO Energy user subscription key.
             websession (object, optional): Websession for api calls. Defaults to None.
         """
         self.subscription_key = subscription_key
 
-        self.helper = OSOHotwaterHelper(self)
-        self.api = API(osohotwater_session=self, websession=websession)
-        self.attr = OSOHotwaterAttributes(self)
+        self.helper = OSOEnergyHelper(self)
+        self.api = API(osoenergy_session=self, websession=websession)
+        self.attr = OSOEnergyAttributes(self)
         self.log = Logger(self)
         self.update_lock = asyncio.Lock()
         self.config = Map(
@@ -96,7 +96,7 @@ class OSOHotwaterSession:
         return subscription_key
 
     async def update_data(self):
-        """Get latest data for OSO Hotwater - rate limiting.
+        """Get latest data for OSO Energy - rate limiting.
 
         Returns:
             boolean: True/False if update was successful
@@ -131,7 +131,7 @@ class OSOHotwaterSession:
                 raise HTTPException
 
             if api_resp_d["parsed"] is None:
-                raise OSOHotwaterApiError
+                raise OSOEnergyApiError
 
             api_resp_p = api_resp_d["parsed"]
             tmp_devices = {}
@@ -143,21 +143,21 @@ class OSOHotwaterSession:
 
             self.config.last_update = datetime.now()
             get_devices_successful = True
-        except (OSError, RuntimeError, OSOHotwaterApiError, ConnectionError, HTTPException):
+        except (OSError, RuntimeError, OSOEnergyApiError, ConnectionError, HTTPException):
             get_devices_successful = False
 
         return get_devices_successful
 
     async def start_session(self, config: dict = {}):
         # pylint: disable=unused-variable
-        """Start session to the OSO Hotwater platform.
+        """Start session to the OSO Energy platform.
 
         Args:
             config (dict, optional): Configuration for Home Assistant to use. Defaults to {}.
 
         Raises:
-            OSOHotwaterUnknownConfiguration: Unknown configuration identifed.
-            OSOHotwaterReauthRequired: Subscription key has expired and a new one is required.
+            OSOEnergyUnknownConfiguration: Unknown configuration identifed.
+            OSOEnergyReauthRequired: Subscription key has expired and a new one is required.
 
         Returns:
             list: List of devices
@@ -176,7 +176,7 @@ class OSOHotwaterSession:
             if config["api_key"] is not None and not self.config.file:
                 await self.update_subscription_key(config["api_key"])
             elif not self.config.file:
-                raise OSOHotwaterUnknownConfiguration
+                raise OSOEnergyUnknownConfiguration
 
         try:
             await self.get_devices()
@@ -184,7 +184,7 @@ class OSOHotwaterSession:
             return HTTPException
 
         if self.data.devices == {}:
-            raise OSOHotwaterReauthRequired
+            raise OSOEnergyReauthRequired
 
         return await self.create_devices()
 
@@ -200,38 +200,22 @@ class OSOHotwaterSession:
         for a_device in self.data["devices"]:
             device = self.data.devices[a_device]
             self.add_list("water_heater", device)
-            self.add_list("sensor", device, haName=" Power Save", osoHotwaterType="POWER_SAVE")
-            self.add_list("sensor", device, haName=" Extra Energy", osoHotwaterType="EXTRA_ENERGY")
-            self.add_list("sensor", device, haName=" Power Load", osoHotwaterType="POWER_LOAD")
-            self.add_list("sensor", device, haName=" Volume", osoHotwaterType="VOLUME")
+            self.add_list("sensor", device, haName=" Power Save", osoEnergyType="POWER_SAVE")
+            self.add_list("sensor", device, haName=" Extra Energy", osoEnergyType="EXTRA_ENERGY")
+            self.add_list("sensor", device, haName=" Power Load", osoEnergyType="POWER_LOAD")
             self.add_list(
                 "sensor",
                 device,
                 haName=" Tapping Capacity kWh",
-                osoHotwaterType="TAPPING_CAPACITY_KWH"
+                osoEnergyType="TAPPING_CAPACITY_KWH"
                 )
             self.add_list(
                 "sensor",
                 device,
                 haName=" Capacity Mixed Water 40",
-                osoHotwaterType="CAPACITY_MIXED_WATER_40"
+                osoEnergyType="CAPACITY_MIXED_WATER_40"
                 )
-            self.add_list("sensor", device, haName=" Heater State", osoHotwaterType="HEATER_STATE")
-            self.add_list("sensor", device, haName=" Heater Mode", osoHotwaterType="HEATER_MODE")
-            self.add_list(
-                "sensor",
-                device,
-                haName=" Optimization Mode",
-                osoHotwaterType="OPTIMIZATION_MODE"
-                )
-            self.add_list(
-                "sensor",
-                device,
-                haName=" Sub Optimization Mode",
-                osoHotwaterType="SUB_OPTIMIZATION_MODE"
-                )
-            self.add_list("sensor", device, haName=" V40 Min", osoHotwaterType="V40_MIN")
-            self.add_list("sensor", device, haName=" Profile", osoHotwaterType="PROFILE")
+            self.add_list("sensor", device, haName=" V40 Min", osoEnergyType="V40_MIN")
 
         return self.device_list
 

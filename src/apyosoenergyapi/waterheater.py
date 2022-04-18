@@ -1,4 +1,4 @@
-"""OSO Hotwater Water Heater Module."""
+"""OSO Energy Water Heater Module."""
 
 from array import array
 from numbers import Number
@@ -162,7 +162,7 @@ class WaterHeater(OSOWaterHeater):
     """Water heater class.
 
     Args:
-        Hotwater (object): Hotwater class.
+        OSOWaterHeater (object): OSOWaterHeater class.
     """
 
     def __init__(self, session: object = None):

@@ -1,4 +1,4 @@
-"""Setup pyosohotwaterapi package."""
+"""Setup pyosoenergyapi package."""
 import os
 import re
 
@@ -15,15 +15,15 @@ def requirements_from_file(filename="requirements.txt"):
 
 
 setup(
-    version="1.0.1",
+    version="1.0.0",
     cmdclass={
         "build_py": unasync.cmdclass_build_py(
             rules=[
                 unasync.Rule(
-                    "/apyosohotwaterapi/",
-                    "/pyosohotwaterapi/",
+                    "/apyosoenergyapi/",
+                    "/pyosoenergyapi/",
                     additional_replacements={
-                        "apyosohotwaterapi": "pyosohotwaterapi",
+                        "apyosoenergyapi": "pyosoenergyapi",
                     },
                 )
             ]

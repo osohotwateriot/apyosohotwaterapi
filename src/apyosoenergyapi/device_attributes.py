@@ -1,9 +1,9 @@
-"""OSO Hotwater Device Attribute Module."""
+"""OSO Energy Device Attribute Module."""
 from .helper.logger import Logger
 from .helper.const import OSOTOHA
 
 
-class OSOHotwaterAttributes:  # pylint: disable=too-many-public-methods
+class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
     """Devcie Attributes Code."""
 
     hotwaterType = "Hotwater"
@@ -16,7 +16,7 @@ class OSOHotwaterAttributes:  # pylint: disable=too-many-public-methods
         """Initialise attributes.
 
         Args:
-            session (object, optional): Session to interact with OSO Hotwater. Defaults to None.
+            session (object, optional): Session to interact with OSO Energy. Defaults to None.
         """
         self.session = session
         self.session.log = Logger(session)
@@ -55,9 +55,6 @@ class OSOHotwaterAttributes:  # pylint: disable=too-many-public-methods
             attr.update({"min_temperature": (await self.get_min_temperature(device_id))})
             attr.update({"max_temperature": (await self.get_max_temperature(device_id))})
             attr.update({"optimization_mode": (await self.get_optimization_mode(device_id))})
-            attr.update({
-                "sub_optimization_mode": (await self.get_sub_optimization_mode(device_id))
-                })
             attr.update({"v40_min": (await self.get_v40_min(device_id))})
             attr.update({"profile": (await self.get_profile(device_id))})
 

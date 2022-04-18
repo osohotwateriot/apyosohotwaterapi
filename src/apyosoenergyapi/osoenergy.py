@@ -1,4 +1,4 @@
-"""Start OSO Hotwater Session."""
+"""Start OSO Energy Session."""
 
 import sys
 import traceback
@@ -7,22 +7,22 @@ from typing import Optional
 
 from aiohttp import ClientSession
 from loguru import logger
-from apyosohotwaterapi.sensor import Sensor
+from apyosoenergyapi.sensor import Sensor
 
-from .session import OSOHotwaterSession
+from .session import OSOEnergySession
 from .waterheater import WaterHeater
-from .device_attributes import OSOHotwaterAttributes
+from .device_attributes import OSOEnergyAttributes
 
 debug = []
 home = expanduser("~")
 logger.add(
-    home + "/pyosohotwaterapi_debug.log", filter=lambda record: record["level"].name == "DEBUG"
+    home + "/pyosoenergyapi_debug.log", filter=lambda record: record["level"].name == "DEBUG"
 )
 logger.add(
-    home + "/pyosohotwaterapi_info.log", filter=lambda record: record["level"].name == "INFO"
+    home + "/pyosoenergyapi_info.log", filter=lambda record: record["level"].name == "INFO"
 )
 logger.add(
-    home + "/pyosohotwaterapi_error.log", filter=lambda record: record["level"].name == "ERROR"
+    home + "/pyosoenergyapi_error.log", filter=lambda record: record["level"].name == "ERROR"
 )
 
 
@@ -61,7 +61,7 @@ def trace_debug(frame, event, arg):
     Returns:
         object: returns itself as per tracing docs
     """
-    if "pyosohotwaterapi/" in str(frame):
+    if "pyosoenergyapi/" in str(frame):
         code = frame.f_code
         func_name = code.co_name
         func_line_no = frame.f_lineno
@@ -85,21 +85,21 @@ def trace_debug(frame, event, arg):
     return None
 
 
-class OSOHotwater(OSOHotwaterSession):
-    """OSO Hotwater class.
+class OSOEnergy(OSOEnergySession):
+    """OSO Energy class.
 
     Args:
-        OSOHotwaterSession (object): Interact with OSO Hotwater
+        OSOEnergySession (object): Interact with OSO Energy
     """
 
     def __init__(
             self,
             subscription_key,
             websession: Optional[ClientSession] = None):
-        """Initialize OSO Hotwater."""
+        """Initialize OSO Energy."""
         super().__init__(subscription_key=subscription_key, websession=websession)
         self.session = self
-        self.attr = OSOHotwaterAttributes(self.session)
+        self.attr = OSOEnergyAttributes(self.session)
         self.hotwater = WaterHeater(self.session)
         self.sensor = Sensor(self.session)
         self.logger = logger

@@ -1,2 +1,2 @@
-recursive-include pyosohotwaterapi *
+recursive-include pyosoenergyapi *
 include requirements.txt

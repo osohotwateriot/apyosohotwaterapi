@@ -1,14 +1,14 @@
-"""OSO Hotwater Helper code."""
+"""OSO Energy Helper code."""
 
 
-class OSOHotwaterHelper:  # pylint: disable=too-few-public-methods
-    """OSO Hotwater helper class."""
+class OSOEnergyHelper:  # pylint: disable=too-few-public-methods
+    """OSO Energy helper class."""
 
     def __init__(self, session: object = None):
-        """OSO Hotwater Helper.
+        """OSO Energy Helper.
 
         Args:
-            session (object, optional): Interact with OSO Hotwater. Defaults to None.
+            session (object, optional): Interact with OSO Energy. Defaults to None.
         """
         self.session = session
 

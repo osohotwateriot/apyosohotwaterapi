@@ -1,4 +1,4 @@
-"""OSO Hotwater constants."""
+"""OSO Energy constants."""
 # pylint: disable=line-too-long
 # HTTP return codes.
 HTTP_OK = 200
@@ -48,7 +48,6 @@ sensor_commands = {
     "HEATER_STATE": "self.session.attr.get_heater_state(device[\"device_id\"])",
     "HEATER_MODE": "self.session.attr.get_heater_mode(device[\"device_id\"])",
     "OPTIMIZATION_MODE": "self.session.attr.get_optimization_mode(device[\"device_id\"])",
-    "SUB_OPTIMIZATION_MODE": "self.session.attr.get_sub_optimization_mode(device[\"device_id\"])",
     "V40_MIN": "self.session.attr.get_v40_min(device[\"device_id\"])",
     "PROFILE": "self.session.attr.get_profile(device[\"device_id\"])"
 }

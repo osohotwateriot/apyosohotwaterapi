@@ -1,7 +1,7 @@
-"""OSO Hotwater exception class."""
+"""OSO Energy exception class."""
 
 
-class OSOHotwaterApiError(Exception):
+class OSOEnergyApiError(Exception):
     """Api error.
 
     Args:
@@ -9,7 +9,7 @@ class OSOHotwaterApiError(Exception):
     """
 
 
-class OSOHotwaterReauthRequired(Exception):
+class OSOEnergyReauthRequired(Exception):
     """Re-Authentication is required.
 
     Args:
@@ -17,8 +17,8 @@ class OSOHotwaterReauthRequired(Exception):
     """
 
 
-class OSOHotwaterUnknownConfiguration(Exception):
-    """Unknown OSO Hotwater Configuration.
+class OSOEnergyUnknownConfiguration(Exception):
+    """Unknown OSO Energy Configuration.
 
     Args:
         Exception (object): Exception object to invoke

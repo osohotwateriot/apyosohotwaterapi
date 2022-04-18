@@ -1,4 +1,4 @@
-"""OSO Hotwater API Module."""
+"""OSO Energy API Module."""
 
 import operator
 from typing import Optional
@@ -9,17 +9,17 @@ from aiohttp import ClientResponse, ClientSession
 from aiohttp.web_exceptions import HTTPError
 
 from ..helper.const import HTTP_UNAUTHORIZED, HTTP_FORBIDDEN
-from ..helper.osohotwater_exceptions import NoSubscriptionKey
+from ..helper.osoenergy_exceptions import NoSubscriptionKey
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class OSOHotwaterApiAsync:
-    """OSO Hotwater API Code."""
+class OSOEnergyApiAsync:
+    """OSO Energy API Code."""
 
     def __init__(
             self,
-            osohotwater_session=None,
+            osoenergy_session=None,
             websession: Optional[ClientSession] = None):
         """Init the api."""
         self.base_url = "https://osowh-apimanagement.azure-api.net/water-heater-api"
@@ -37,10 +37,10 @@ class OSOHotwaterApiAsync:
         }
         self.timeout = 10
         self.json_return = {
-            "original": "No response to OSO Hotwater API request",
-            "parsed": "No response to OSO Hotwater API request",
+            "original": "No response to OSO Energy API request",
+            "parsed": "No response to OSO Energy API request",
         }
-        self.session = osohotwater_session
+        self.session = osoenergy_session
         self.websession = ClientSession() if websession is None else websession
 
     async def request(self, method: str, url: str, **kwargs) -> ClientResponse:

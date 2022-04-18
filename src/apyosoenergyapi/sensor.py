@@ -1,11 +1,11 @@
-"""OSO Hotwater Sensor Module."""
+"""OSO Energy Sensor Module."""
 
-from .helper.const import OSOTOHA, sensor_commands
+from .helper.const import sensor_commands
 
 
-class OSOHotwaterSensor:
+class OSOEnergySensor:
     # pylint: disable=no-member
-    """OSO Hotwater Sensor Code."""
+    """OSO Energy Sensor Code."""
 
     sensorType = "Sensor"
     hotwaterType = "Hotwater"
@@ -35,40 +35,19 @@ class OSOHotwaterSensor:
 
         return final
 
-    async def online(self, device: dict):
-        """Get the online status of the Sensor.
 
-        Args:
-            device (dict): Device to get the state of.
-
-        Returns:
-            boolean: True/False if the device is online.
-        """
-        state = None
-        final = False
-
-        try:
-            data = self.session.data.devices[device["device_id"]]
-            state = data["connectionState"]["connectionState"]
-            final = OSOTOHA[self.hotwaterType][self.hotwaterConnection].get(state, False)
-        except KeyError as exception:
-            await self.session.log.error(exception)
-
-        return final
-
-
-class Sensor(OSOHotwaterSensor):
+class Sensor(OSOEnergySensor):
     """Home Assistant sensor code.
 
     Args:
-        OSOHotwaterSensor (object): OSO Hotwater sensor code.
+        OSOEnergySensor (object): OSO Energy sensor code.
     """
 
     def __init__(self, session: object = None):
         """Initialise sensor.
 
         Args:
-            session (object, optional): session to interact with OSO Hotwater. Defaults no None.
+            session (object, optional): session to interact with OSO Energy. Defaults no None.
         """
         self.session = session
 
@@ -90,15 +69,15 @@ class Sensor(OSOHotwaterSensor):
             dev_data = {
                 "haName": device["haName"],
                 "haType": device["haType"],
-                "osoHotwaterType": device["osoHotwaterType"],
+                "osoEnergyType": device["osoEnergyType"],
                 "device_id": device["device_id"],
                 "device_type": device["device_type"],
                 "device_name": device["device_name"],
-                "available": await self.online(device)
+                "available": await self.session.attr.online_offline(device["device_id"])
             }
 
-            if dev_data["osoHotwaterType"] in sensor_commands:
-                code = sensor_commands.get(dev_data["osoHotwaterType"])
+            if dev_data["osoEnergyType"] in sensor_commands:
+                code = sensor_commands.get(dev_data["osoEnergyType"])
                 dev_data.update(
                     {
                         "status": {"state": await eval(code)}

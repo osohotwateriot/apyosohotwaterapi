@@ -22,7 +22,7 @@ class OSOEnergyApiAsync:
             osoenergy_session=None,
             websession: Optional[ClientSession] = None):
         """Init the api."""
-        self.base_url = "https://osowh-apimanagement.azure-api.net/water-heater-api"
+        self.base_url = "https://api.osoenergy.no/water-heater-api"
         self.urls = {
             "devices": self.base_url + "/1/Device/All",
             "turn_on": self.base_url + "/1/Device/{0}/TurnOn?fullUtilizationParam={1}",

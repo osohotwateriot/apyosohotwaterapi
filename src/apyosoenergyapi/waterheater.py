@@ -124,7 +124,7 @@ class OSOWaterHeater:
                 device["device_id"],
                 optimizationOptions=option,
                 optimizationSubOptions=sub_option
-                )
+            )
             if resp["original"] == 200:
                 final = True
                 await self.session.get_devices()

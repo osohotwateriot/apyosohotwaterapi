@@ -208,13 +208,13 @@ class OSOEnergySession:
                 device,
                 haName=" Tapping Capacity kWh",
                 osoEnergyType="TAPPING_CAPACITY_KWH"
-                )
+            )
             self.add_list(
                 "sensor",
                 device,
                 haName=" Capacity Mixed Water 40",
                 osoEnergyType="CAPACITY_MIXED_WATER_40"
-                )
+            )
             self.add_list("sensor", device, haName=" V40 Min", osoEnergyType="V40_MIN")
 
         return self.device_list
@@ -247,6 +247,8 @@ class OSOEnergySession:
                 "optimization_option": data.get("optimizationOption", ""),
                 "optimization_suboption": data.get("optimizationSubOption", ""),
                 "v40_min": data.get("v40Min", 0),
+                "v40_level_min": data.get("v40LevelMin", 0),
+                "v40_level_max": data.get("v40LevelMax", 0),
                 "profile": data.get("profile", []),
                 "haType": entity_type,
                 "haName": display_name

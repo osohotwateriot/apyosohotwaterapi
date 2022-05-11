@@ -40,7 +40,7 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
             attr.update({"tapping_capacity_kWh": (await self.get_tapping_capacity_kwh(device_id))})
             attr.update({
                 "capacity_mixed_water_40": (await self.get_capacity_mixed_water_40(device_id))
-                })
+            })
             attr.update({"actual_load_kwh": (await self.get_actual_load_kwh(device_id))})
             attr.update({"heater_state": (await self.get_heater_state(device_id))})
             attr.update({"heater_mode": (await self.get_heater_mode(device_id))})
@@ -48,14 +48,16 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
             attr.update({"target_temperature": (await self.get_target_temperature(device_id))})
             attr.update({
                 "target_temperature_low": (await self.get_target_temperature_low(device_id))
-                })
+            })
             attr.update({
                 "target_temperature_high": (await self.get_target_temperature_high(device_id))
-                })
+            })
             attr.update({"min_temperature": (await self.get_min_temperature(device_id))})
             attr.update({"max_temperature": (await self.get_max_temperature(device_id))})
             attr.update({"optimization_mode": (await self.get_optimization_mode(device_id))})
             attr.update({"v40_min": (await self.get_v40_min(device_id))})
+            attr.update({"v40_level_min": (await self.get_v40_level_min(device_id))})
+            attr.update({"v40_level_max": (await self.get_v40_level_max(device_id))})
             attr.update({"profile": (await self.get_profile(device_id))})
 
         return attr
@@ -430,6 +432,44 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
         try:
             data = self.session.data.devices[device_id]
             level = data["v40Min"]
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return level
+
+    async def get_v40_level_min(self, device_id: str):
+        """Get v40 level min.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The minimum possible level of v40 of the device.
+        """
+        level = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            level = data["v40LevelMin"]
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return level
+
+    async def get_v40_level_max(self, device_id: str):
+        """Get v40 level max.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The maximum possible level of v40 of the device.
+        """
+        level = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            level = data["v40LevelMax"]
         except KeyError as exception:
             await self.session.log.error(exception)
 

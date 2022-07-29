@@ -55,7 +55,7 @@ class OSOEnergySession:
                 "error_list": {},
                 "file": False,
                 "last_updated": datetime.now(),
-                "scan_interval": timedelta(seconds=120),
+                "scan_interval": timedelta(seconds=30),
                 "sensors": False,
             }
         )
@@ -168,9 +168,7 @@ class OSOEnergySession:
                 custom_component = True
 
         self.config.sensors = custom_component
-        await self.update_interval(
-            config.get("options", {}).get("scan_interval", self.config.scan_interval)
-        )
+        await self.update_interval(30)
 
         if config != {}:
             if config["api_key"] is not None and not self.config.file:

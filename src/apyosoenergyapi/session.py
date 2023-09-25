@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from aiohttp.web import HTTPException
 from apyosoenergyapi import API
 from apyosoenergyapi.helper.osoenergy_helper import OSOEnergyHelper
+from typing import Any
 
 from .device_attributes import OSOEnergyAttributes
 from .helper.const import OSOTOHA
@@ -113,6 +114,31 @@ class OSOEnergySession:
 
         return updated
 
+    async def get_user_email(self):
+        """Get user email address
+        
+        Raises:
+            HTTPException: HTTP error has occured loading the user email.
+
+        Returns:
+            string: The authenticated user email.
+        """
+        user_email = None
+        api_resp_d = None
+
+        try:
+            api_resp_d = await self.api.get_user_details()
+            if operator.contains(str(api_resp_d["original"]), "20") is False:
+                raise HTTPException
+            
+            user_email = api_resp_d["parsed"].get("email", None)
+            if(user_email == "" or user_email is None):
+                raise OSOEnergyApiError
+        except (OSError, RuntimeError, OSOEnergyApiError, ConnectionError, HTTPException):
+            user_email = None
+        
+        return user_email
+
     async def get_devices(self):
         """Get latest device list for the user.
 
@@ -148,7 +174,7 @@ class OSOEnergySession:
 
         return get_devices_successful
 
-    async def start_session(self, config: dict = {}):
+    async def start_session(self, config: dict = {}) -> dict[str, list[dict[str, Any]]]:
         # pylint: disable=unused-variable
         """Start session to the OSO Energy platform.
 
@@ -186,7 +212,7 @@ class OSOEnergySession:
 
         return await self.create_devices()
 
-    async def create_devices(self):
+    async def create_devices(self) -> dict[str, list[dict[str, Any]]]:
         """Create list of devices.
 
         Returns:

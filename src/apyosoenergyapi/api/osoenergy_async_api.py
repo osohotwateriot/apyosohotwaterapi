@@ -30,6 +30,7 @@ class OSOEnergyApiAsync:
             "profile": self.base_url + "/1/Device/{0}/Profile",
             "optimization_mode": self.base_url + "/1/Device/{0}/OptimizationMode",
             "set_v40_min": self.base_url + "/1/Device/{0}/V40Min/{1}",
+            "user": self.base_url + "/1/User/Details"
         }
         self.headers = {
             "content-type": "application/json",
@@ -82,6 +83,16 @@ class OSOEnergyApiAsync:
             )
 
         return False
+
+    async def get_user_details(self):
+        """Get user details."""
+        url = self.urls["user"]
+        try:
+            await self.request("get", url)
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
+
+        return self.json_return
 
     async def get_devices(self):
         """Call the get devices endpoint."""

@@ -15,7 +15,7 @@ def requirements_from_file(filename="requirements.txt"):
 
 
 setup(
-    version="1.0.4",
+    version="1.0.5",
     cmdclass={
         "build_py": unasync.cmdclass_build_py(
             rules=[

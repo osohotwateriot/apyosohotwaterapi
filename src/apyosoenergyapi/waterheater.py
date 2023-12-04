@@ -3,7 +3,7 @@
 from array import array
 from numbers import Number
 from aiohttp.web_exceptions import HTTPError
-from .helper.const import OSOTOHA
+from .helper.const import OSOTOHA, OSOEnergyWaterHeaterData
 
 
 class OSOWaterHeater:
@@ -16,11 +16,11 @@ class OSOWaterHeater:
 
     hotwaterType = "Hotwater"
 
-    async def get_heater_state(self, device: dict):
+    async def get_heater_state(self, device: OSOEnergyWaterHeaterData):
         """Get water heater current mode.
 
         Args:
-            device (dict): Device to get the mode for.
+            device (OSOEnergyWaterHeaterData): Device to get the mode for.
 
         Returns:
             str: Return mode.
@@ -29,19 +29,19 @@ class OSOWaterHeater:
         final = None
 
         try:
-            device = self.session.data.devices[device["device_id"]]
-            state = device["control"]["heater"]
+            device_data = self.session.data.devices[device.device_id]
+            state = device_data["control"]["heater"]
             final = OSOTOHA[self.hotwaterType]["HeaterState"].get(state, state)
         except KeyError as exception:
             await self.session.log.error(exception)
 
         return final
 
-    async def turn_on(self, device: dict, full_utilization: bool):
+    async def turn_on(self, device: OSOEnergyWaterHeaterData, full_utilization: bool):
         """Turn device on.
 
         Args:
-            device (dict): Device to turn on.
+            device (OSOEnergyWaterHeaterData): Device to turn on.
             full_utilization (bool): Fully utilize device.
 
         Returns:
@@ -50,7 +50,7 @@ class OSOWaterHeater:
         final = False
 
         try:
-            resp = await self.session.api.turn_on(device["device_id"], full_utilization)
+            resp = await self.session.api.turn_on(device.device_id, full_utilization)
             if resp["original"] == 200:
                 final = True
                 await self.session.get_devices()
@@ -60,11 +60,11 @@ class OSOWaterHeater:
 
         return final
 
-    async def turn_off(self, device: dict, full_utilization: bool):
+    async def turn_off(self, device: OSOEnergyWaterHeaterData, full_utilization: bool):
         """Turn device off.
 
         Args:
-            device (dict): Device to turn off.
+            device (OSOEnergyWaterHeaterData): Device to turn off.
             full_utilization (bool): Fully utilize device.
 
         Returns:
@@ -73,7 +73,7 @@ class OSOWaterHeater:
         final = False
 
         try:
-            resp = await self.session.api.turn_off(device["device_id"], full_utilization)
+            resp = await self.session.api.turn_off(device.device_id, full_utilization)
             if resp["original"] == 200:
                 final = True
                 await self.session.get_devices()
@@ -83,11 +83,11 @@ class OSOWaterHeater:
 
         return final
 
-    async def set_v40_min(self, device: dict, v40min: float):
+    async def set_v40_min(self, device: OSOEnergyWaterHeaterData, v40min: float):
         """Set V40 Min levels for device.
 
         Args:
-            device (dict): Device to turn off.
+            device (OSOEnergyWaterHeaterData): Device to turn off.
             v40Min (float): quantity of water at 40°C.
 
         Returns:
@@ -96,7 +96,7 @@ class OSOWaterHeater:
         final = False
 
         try:
-            resp = await self.session.api.set_v40_min(device["device_id"], v40min)
+            resp = await self.session.api.set_v40_min(device.device_id, v40min)
             if resp["original"] == 200:
                 final = True
                 await self.session.get_devices()
@@ -106,11 +106,11 @@ class OSOWaterHeater:
 
         return final
 
-    async def set_optimization_mode(self, device: dict, option: Number, sub_option: Number):
+    async def set_optimization_mode(self, device: OSOEnergyWaterHeaterData, option: Number, sub_option: Number):
         """Set heater optimization mode.
 
         Args:
-            device (dict): Device to turn off.
+            device (OSOEnergyWaterHeaterData): Device to turn off.
             option (Number): heater optimization option.
             sub_option (Number): heater optimization sub option.
 
@@ -121,7 +121,7 @@ class OSOWaterHeater:
 
         try:
             resp = await self.session.api.set_optimization_mode(
-                device["device_id"],
+                device.device_id,
                 optimizationOptions=option,
                 optimizationSubOptions=sub_option
             )
@@ -134,11 +134,11 @@ class OSOWaterHeater:
 
         return final
 
-    async def set_profile(self, device: dict, profile: array):
+    async def set_profile(self, device: OSOEnergyWaterHeaterData, profile: array):
         """Set heater profile.
 
         Args:
-            device (dict): Device to set profile to.
+            device (OSOEnergyWaterHeaterData): Device to set profile to.
             profile (array): array of temperatures for 24 hours (UTC).
 
         Returns:
@@ -147,7 +147,7 @@ class OSOWaterHeater:
         final = False
 
         try:
-            resp = await self.session.api.set_profile(device["device_id"], hours=profile)
+            resp = await self.session.api.set_profile(device.device_id, hours=profile)
             if resp["original"] == 200:
                 final = True
                 await self.session.get_devices()
@@ -173,36 +173,46 @@ class WaterHeater(OSOWaterHeater):
         """
         self.session = session
 
-    async def get_water_heater(self, device: dict):
+    async def get_water_heater(self, device: OSOEnergyWaterHeaterData) -> OSOEnergyWaterHeaterData:
         """Update water heater device.
 
         Args:
-            device (dict): device to update.
+            device (OSOEnergyWaterHeaterData): device to update.
 
         Returns:
-            dict: Updated device.
+            OSOEnergyWaterHeaterData: Updated device.
         """
-        device.update({"online": await self.session.attr.online_offline(device["device_id"])})
+        device.online = await self.session.attr.online_offline(device.device_id)
+        if(device.online):
+            self.session.helper.device_recovered(device.device_id)
+            
+            dev_data = OSOEnergyWaterHeaterData()
+            dev_data.ha_name = device.ha_name
+            dev_data.ha_type = device.ha_type
+            dev_data.device_id = device.device_id
+            dev_data.device_type = device.device_type
+            dev_data.device_name = device.device_name
+            dev_data.current_operation = await self.get_heater_state(device)
 
-        if(device["online"]):
-            dev_data = {}
-            self.session.helper.device_recovered(device["device_id"])
-            dev_data = {
-                "haName": device["haName"],
-                "haType": device["haType"],
-                "device_id": device["device_id"],
-                "device_type": device["device_type"],
-                "device_name": device["device_name"],
-                "status": {"current_operation": await self.get_heater_state(device)},
-                "attributes": await self.session.attr.state_attributes(
-                    device["device_id"]
-                ),
-            }
+            attributes = await self.session.attr.state_attributes(device.device_id)
 
-            self.session.devices.update({device["device_id"]: dev_data})
-            return self.session.devices[device["device_id"]]
+            dev_data.optimization_mode = attributes.get("optimization_mode")
+            dev_data.heater_state = attributes.get("heater_state")
+            dev_data.heater_mode = attributes.get("heater_mode")
+            dev_data.current_temperature = attributes.get("current_temperature")
+            dev_data.target_temperature = attributes.get("target_temperature")
+            dev_data.target_temperature_low = attributes.get("target_temperature_low")
+            dev_data.target_temperature_high = attributes.get("target_temperature_high")
+            dev_data.min_temperature = attributes.get("min_temperature")
+            dev_data.max_temperature = attributes.get("max_temperature")
+            dev_data.profile = attributes.get("profile")
+            dev_data.power_load = attributes.get("power_load")
+            dev_data.volume = attributes.get("volume")
+
+            self.session.devices.update({device.device_id: dev_data})
+            return self.session.devices[device.device_id]
 
         await self.session.log.error_check(
-            device["device_id"], device["online"]
+            device.device_id, device.online
         )
         return device

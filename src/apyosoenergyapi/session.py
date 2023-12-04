@@ -12,7 +12,7 @@ from apyosoenergyapi.helper.osoenergy_helper import OSOEnergyHelper
 from typing import Any
 
 from .device_attributes import OSOEnergyAttributes
-from .helper.const import OSOTOHA
+from .helper.const import OSOTOHA, OSOEnergySensorData, OSOEnergyWaterHeaterData
 from .helper.osoenergy_exceptions import (
     OSOEnergyApiError,
     OSOEnergyReauthRequired,
@@ -67,7 +67,10 @@ class OSOEnergySession:
         )
         self.devices = {}
         self.sensors = {}
-        self.device_list = {}
+        self.device_list = {
+            "sensor": [],
+            "water_heater": []
+        }
 
     async def update_interval(self, new_interval: timedelta):
         """Update the scan interval.
@@ -174,7 +177,7 @@ class OSOEnergySession:
 
         return get_devices_successful
 
-    async def start_session(self, config: dict = {}) -> dict[str, list[dict[str, Any]]]:
+    async def start_session(self, config: dict = {}) -> dict[str, list[OSOEnergyWaterHeaterData | OSOEnergySensorData]]:
         # pylint: disable=unused-variable
         """Start session to the OSO Energy platform.
 
@@ -212,7 +215,7 @@ class OSOEnergySession:
 
         return await self.create_devices()
 
-    async def create_devices(self) -> dict[str, list[dict[str, Any]]]:
+    async def create_devices(self) -> dict[str, list[OSOEnergyWaterHeaterData | OSOEnergySensorData]]:
         """Create list of devices.
 
         Returns:
@@ -223,70 +226,86 @@ class OSOEnergySession:
 
         for a_device in self.data["devices"]:
             device = self.data.devices[a_device]
-            self.add_list("water_heater", device)
-            self.add_list("sensor", device, haName=" Power Save", osoEnergyType="POWER_SAVE")
-            self.add_list("sensor", device, haName=" Extra Energy", osoEnergyType="EXTRA_ENERGY")
-            self.add_list("sensor", device, haName=" Power Load", osoEnergyType="POWER_LOAD")
-            self.add_list(
+            self.add_device("water_heater", device)
+            self.add_sensor("sensor", device, haName=" Heater State", osoEnergyType="HEATER_STATE")
+            self.add_sensor("sensor", device, haName=" Heater Mode", osoEnergyType="HEATER_MODE")
+            self.add_sensor("sensor", device, haName=" Optimization Mode", osoEnergyType="OPTIMIZATION_MODE")
+            self.add_sensor("sensor", device, haName=" Profile", osoEnergyType="PROFILE")
+            self.add_sensor("sensor", device, haName=" Volume", osoEnergyType="VOLUME")
+            self.add_sensor("sensor", device, haName=" Power Save", osoEnergyType="POWER_SAVE")
+            self.add_sensor("sensor", device, haName=" Extra Energy", osoEnergyType="EXTRA_ENERGY")
+            self.add_sensor("sensor", device, haName=" Power Load", osoEnergyType="POWER_LOAD")
+            self.add_sensor(
                 "sensor",
                 device,
                 haName=" Tapping Capacity kWh",
                 osoEnergyType="TAPPING_CAPACITY_KWH"
             )
-            self.add_list(
+            self.add_sensor(
                 "sensor",
                 device,
                 haName=" Capacity Mixed Water 40",
                 osoEnergyType="CAPACITY_MIXED_WATER_40"
             )
-            self.add_list("sensor", device, haName=" V40 Min", osoEnergyType="V40_MIN")
+            self.add_sensor("sensor", device, haName=" V40 Min", osoEnergyType="V40_MIN")
+            self.add_sensor("sensor", device, haName=" V40 Level Min", osoEnergyType="V40_LEVEL_MIN")
+            self.add_sensor("sensor", device, haName=" V40 Level Max", osoEnergyType="V40_LEVEL_MAX")
 
         return self.device_list
 
-    def add_list(self, entity_type: str, data: dict, **kwargs: dict):
+    def add_device(self, entity_type: str, data: dict):
         """Add entity to the list.
 
         Args:
             entity_type (str): Type of entity
             data (dict): Information to create entity.
-
-        Returns:
-            dict: Entity.
         """
-        formatted_data = {}
+        result = OSOEnergyWaterHeaterData()
         display_name = data.get("deviceName", "Water Heater")
         connection_status = data.get("connectionState", {}).get("connectionState", "Unknown")
         online = OSOTOHA["Hotwater"]["HeaterConnection"].get(connection_status, False)
 
         try:
-            formatted_data = {
-                "device_id": data["deviceId"],
-                "device_type": data.get("deviceType", "Unknown"),
-                "device_name": display_name,
-                "power_consumption": data.get("powerConsumption", 0),
-                "volume": data.get("volume", 0),
-                "online": online,
-                "data": data.get("data", {}),
-                "control": data.get("control", {}),
-                "optimization_option": data.get("optimizationOption", ""),
-                "optimization_suboption": data.get("optimizationSubOption", ""),
-                "v40_min": data.get("v40Min", 0),
-                "v40_level_min": data.get("v40LevelMin", 0),
-                "v40_level_max": data.get("v40LevelMax", 0),
-                "profile": data.get("profile", []),
-                "haType": entity_type,
-                "haName": display_name
-            }
-
-            if kwargs.get("haName", "FALSE")[0] == " ":
-                kwargs["haName"] = display_name + kwargs["haName"]
-            else:
-                formatted_data["haName"] = display_name
-            formatted_data.update(kwargs)
+            result.ha_name = display_name
+            result.ha_type = entity_type
+            result.device_id = data["deviceId"]
+            result.device_type = data.get("deviceType", "Unknown")
+            result.device_name = display_name
+            result.power_load = float(data.get("powerConsumption", 0))
+            result.volume = float(data.get("volume", 0))
+            result.online = online
         except KeyError as exception:
             self.logger.error(exception)
 
-        self.device_list[entity_type].append(formatted_data)
+        self.device_list[entity_type].append(result)
+
+    def add_sensor(self, entity_type: str, data: dict, haName: str, osoEnergyType: str):
+        """Add entity to the list.
+
+        Args:
+            entity_type (str): Type of entity
+            data (dict): Information to create entity.
+            haName (str): Sensor name for HA
+
+        """
+        result = OSOEnergySensorData()
+        display_name = data.get("deviceName", "Water Heater")
+        connection_status = data.get("connectionState", {}).get("connectionState", "Unknown")
+        online = OSOTOHA["Hotwater"]["HeaterConnection"].get(connection_status, False)
+
+        try:
+            result.ha_name = display_name + haName
+            result.ha_type = entity_type
+            result.device_id = data["deviceId"]
+            result.device_type = data.get("deviceType", "Unknown")
+            result.device_name = display_name
+            result.online = online
+            result.osoEnergyType = osoEnergyType
+
+        except KeyError as exception:
+            self.logger.error(exception)
+
+        self.device_list[entity_type].append(result)
 
     @staticmethod
     def epochTime(date_time: any, pattern: str, action: str):

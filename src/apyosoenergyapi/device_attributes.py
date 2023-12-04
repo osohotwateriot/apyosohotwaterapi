@@ -1,4 +1,5 @@
 """OSO Energy Device Attribute Module."""
+from typing import Any
 from .helper.logger import Logger
 from .helper.const import OSOTOHA
 
@@ -22,7 +23,7 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
         self.session.log = Logger(session)
         self.type = "Attribute"
 
-    async def state_attributes(self, device_id: str):
+    async def state_attributes(self, device_id: str) -> dict[str, Any]:
         """Get HS State Attributes.
 
         Args:

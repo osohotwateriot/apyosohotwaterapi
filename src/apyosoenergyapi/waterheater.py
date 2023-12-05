@@ -196,7 +196,7 @@ class WaterHeater(OSOWaterHeater):
 
             attributes = await self.session.attr.state_attributes(device.device_id)
 
-            dev_data.available = await attributes.get("available")
+            dev_data.available = attributes.get("available")
             dev_data.optimization_mode = attributes.get("optimization_mode")
             dev_data.heater_state = attributes.get("heater_state")
             dev_data.heater_mode = attributes.get("heater_mode")

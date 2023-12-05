@@ -21,6 +21,7 @@ HTTP_SERVICE_UNAVAILABLE = 503
 OSOTOHA = {
     "Hotwater": {
         "HeaterState": {"on": "on", "off": "off"},
+        "HeaterStateBool": {"on": True, "off": False},
         "DeviceConstants": {"minTemp": 10, "maxTemp": 80},
         "HeaterConnection": {None: False, "Connected": True},
         "HeaterMode": {
@@ -36,18 +37,23 @@ OSOTOHA = {
         "HeaterOptimizationMode": {None: "off"},
         "HeaterSubOptimizationMode": {None: None},
         "HeaterPowerSaveMode": {None: "off", False: "off", True: "on"},
+        "HeaterPowerSaveModeBool": {None: False, False: False, True: True},
         "HeaterExtraEnergyMode": {None: "off", False: "off", True: "on"},
+        "HeaterExtraEnergyModeBool": {None: False, False: False, True: True},
     }
 }
 
+binary_sensor_commands = {
+    "POWER_SAVE": "self.session.attr.get_power_save_bool(device.device_id)",
+    "EXTRA_ENERGY": "self.session.attr.get_extra_energy_bool(device.device_id)",
+    "HEATER_STATE": "self.session.attr.get_heater_state_bool(device.device_id)",
+}
+
 sensor_commands = {
-    "POWER_SAVE": "self.session.attr.get_power_save(device.device_id)",
-    "EXTRA_ENERGY": "self.session.attr.get_extra_energy(device.device_id)",
     "POWER_LOAD": "self.session.attr.get_actual_load_kwh(device.device_id)",
     "VOLUME": "self.session.attr.get_volume(device.device_id)",
     "TAPPING_CAPACITY_KWH": "self.session.attr.get_tapping_capacity_kwh(device.device_id)",
     "CAPACITY_MIXED_WATER_40": "self.session.attr.get_capacity_mixed_water_40(device.device_id)",
-    "HEATER_STATE": "self.session.attr.get_heater_state(device.device_id)",
     "HEATER_MODE": "self.session.attr.get_heater_mode(device.device_id)",
     "OPTIMIZATION_MODE": "self.session.attr.get_optimization_mode(device.device_id)",
     "V40_MIN": "self.session.attr.get_v40_min(device.device_id)",
@@ -88,3 +94,8 @@ class OSOEnergySensorData(OSOEnergyEntityBase):
     """Sensor object containing the device data"""
     osoEnergyType: str
     state: Any
+
+class OSOEnergyBinarySensorData(OSOEnergyEntityBase):
+    """Sensor object containing the device data"""
+    osoEnergyType: str
+    state: bool

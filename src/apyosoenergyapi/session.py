@@ -12,7 +12,7 @@ from apyosoenergyapi.helper.osoenergy_helper import OSOEnergyHelper
 from typing import Any
 
 from .device_attributes import OSOEnergyAttributes
-from .helper.const import OSOTOHA, OSOEnergySensorData, OSOEnergyWaterHeaterData
+from .helper.const import OSOTOHA, OSOEnergyBinarySensorData, OSOEnergySensorData, OSOEnergyWaterHeaterData
 from .helper.osoenergy_exceptions import (
     OSOEnergyApiError,
     OSOEnergyReauthRequired,
@@ -68,6 +68,7 @@ class OSOEnergySession:
         self.devices = {}
         self.sensors = {}
         self.device_list = {
+            "binary_sensor": [],
             "sensor": [],
             "water_heater": []
         }
@@ -177,7 +178,7 @@ class OSOEnergySession:
 
         return get_devices_successful
 
-    async def start_session(self, config: dict = {}) -> dict[str, list[OSOEnergyWaterHeaterData | OSOEnergySensorData]]:
+    async def start_session(self, config: dict = {}) -> dict[str, list[OSOEnergyWaterHeaterData | OSOEnergySensorData | OSOEnergyBinarySensorData]]:
         # pylint: disable=unused-variable
         """Start session to the OSO Energy platform.
 
@@ -215,25 +216,24 @@ class OSOEnergySession:
 
         return await self.create_devices()
 
-    async def create_devices(self) -> dict[str, list[OSOEnergyWaterHeaterData | OSOEnergySensorData]]:
+    async def create_devices(self) -> dict[str, list[OSOEnergyWaterHeaterData | OSOEnergySensorData | OSOEnergyBinarySensorData]]:
         """Create list of devices.
 
         Returns:
             list: List of devices
         """
+        self.device_list["binary_sensor"] = []
         self.device_list["sensor"] = []
         self.device_list["water_heater"] = []
 
         for a_device in self.data["devices"]:
             device = self.data.devices[a_device]
             self.add_device("water_heater", device)
-            self.add_sensor("sensor", device, haName=" Heater State", osoEnergyType="HEATER_STATE")
+
             self.add_sensor("sensor", device, haName=" Heater Mode", osoEnergyType="HEATER_MODE")
             self.add_sensor("sensor", device, haName=" Optimization Mode", osoEnergyType="OPTIMIZATION_MODE")
             self.add_sensor("sensor", device, haName=" Profile", osoEnergyType="PROFILE")
             self.add_sensor("sensor", device, haName=" Volume", osoEnergyType="VOLUME")
-            self.add_sensor("sensor", device, haName=" Power Save", osoEnergyType="POWER_SAVE")
-            self.add_sensor("sensor", device, haName=" Extra Energy", osoEnergyType="EXTRA_ENERGY")
             self.add_sensor("sensor", device, haName=" Power Load", osoEnergyType="POWER_LOAD")
             self.add_sensor(
                 "sensor",
@@ -250,6 +250,10 @@ class OSOEnergySession:
             self.add_sensor("sensor", device, haName=" V40 Min", osoEnergyType="V40_MIN")
             self.add_sensor("sensor", device, haName=" V40 Level Min", osoEnergyType="V40_LEVEL_MIN")
             self.add_sensor("sensor", device, haName=" V40 Level Max", osoEnergyType="V40_LEVEL_MAX")
+
+            self.add_binary_sensor("binary_sensor", device, haName=" Power Save", osoEnergyType="POWER_SAVE")
+            self.add_binary_sensor("binary_sensor", device, haName=" Extra Energy", osoEnergyType="EXTRA_ENERGY")
+            self.add_binary_sensor("binary_sensor", device, haName=" Heater State", osoEnergyType="HEATER_STATE")
 
         return self.device_list
 
@@ -289,6 +293,34 @@ class OSOEnergySession:
 
         """
         result = OSOEnergySensorData()
+        display_name = data.get("deviceName", "Water Heater")
+        connection_status = data.get("connectionState", {}).get("connectionState", "Unknown")
+        online = OSOTOHA["Hotwater"]["HeaterConnection"].get(connection_status, False)
+
+        try:
+            result.ha_name = display_name + haName
+            result.ha_type = entity_type
+            result.device_id = data["deviceId"]
+            result.device_type = data.get("deviceType", "Unknown")
+            result.device_name = display_name
+            result.online = online
+            result.osoEnergyType = osoEnergyType
+
+        except KeyError as exception:
+            self.logger.error(exception)
+
+        self.device_list[entity_type].append(result)
+
+    def add_binary_sensor(self, entity_type: str, data: dict, haName: str, osoEnergyType: str):
+        """Add entity to the list.
+
+        Args:
+            entity_type (str): Type of entity
+            data (dict): Information to create entity.
+            haName (str): Sensor name for HA
+
+        """
+        result = OSOEnergyBinarySensorData()
         display_name = data.get("deviceName", "Water Heater")
         connection_status = data.get("connectionState", {}).get("connectionState", "Unknown")
         online = OSOTOHA["Hotwater"]["HeaterConnection"].get(connection_status, False)

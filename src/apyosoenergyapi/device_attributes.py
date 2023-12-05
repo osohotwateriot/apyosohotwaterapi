@@ -63,6 +63,69 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
 
         return attr
 
+    async def get_heater_state_bool(self, device_id: str) -> bool:
+        """Get state of heating.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            str: The state of the heater.
+        """
+        state = None
+        final = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            state = data.get("control", {}).get("heater", 0)
+            final = OSOTOHA[self.hotwaterType]["HeaterStateBool"].get(state, False)
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return final
+    
+    async def get_power_save_bool(self, device_id: str) -> bool:
+        """Check if device is in Power Save mode.
+
+        Args:
+            device_id (str): The id of the device.
+
+        Returns:
+            boolean: True/False if device in Power Save mode.
+        """
+        state = None
+        final = False
+
+        try:
+            data = self.session.data.devices[device_id]
+            state = data.get("isInPowerSave", False)
+            final = OSOTOHA[self.hotwaterType]["HeaterPowerSaveModeBool"].get(state, False)
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return final
+
+    async def get_extra_energy_bool(self, device_id: str) -> bool:
+        """Check if device is in Extra Energy mode.
+
+        Args:
+            device_id (str): The id of the device.
+
+        Returns:
+            boolean: True/False if device in Extra Energy mode.
+        """
+        state = None
+        final = False
+
+        try:
+            data = self.session.data.devices[device_id]
+            state = data.get("isInExtraEnergy", False)
+            final = OSOTOHA[self.hotwaterType]["HeaterExtraEnergyModeBool"].get(state, False)
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return final
+
     async def get_power_save(self, device_id: str):
         """Check if device is in Power Save mode.
 

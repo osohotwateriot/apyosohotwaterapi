@@ -52,7 +52,7 @@ binary_sensor_commands = {
 sensor_commands = {
     "POWER_LOAD": "self.session.attr.get_actual_load_kwh(device.device_id)",
     "VOLUME": "self.session.attr.get_volume(device.device_id)",
-    "TAPPING_CAPACITY_KWH": "self.session.attr.get_tapping_capacity_kwh(device.device_id)",
+    "TAPPING_CAPACITY": "self.session.attr.get_tapping_capacity(device.device_id)",
     "CAPACITY_MIXED_WATER_40": "self.session.attr.get_capacity_mixed_water_40(device.device_id)",
     "HEATER_MODE": "self.session.attr.get_heater_mode(device.device_id)",
     "OPTIMIZATION_MODE": "self.session.attr.get_optimization_mode(device.device_id)",
@@ -60,7 +60,10 @@ sensor_commands = {
     "V40_LEVEL_MIN": "self.session.attr.get_v40_level_min(device.device_id)",
     "V40_LEVEL_MAX": "self.session.attr.get_v40_level_max(device.device_id)",
     "PROFILE": "self.session.attr.get_profile(device.device_id)",
-    "VOLUME": "self.session.attr.get_volume(device.device_id)",
+    "TEMPERATURE_ONE": "self.session.attr.get_temperature_one(device.device_id)",
+    "TEMPERATURE_LOW": "self.session.attr.get_temperature_low(device.device_id)",
+    "TEMPERATURE_MID": "self.session.attr.get_temperature_mid(device.device_id)",
+    "TEMPERATURE_TOP": "self.session.attr.get_temperature_top(device.device_id)",
 }
 
 

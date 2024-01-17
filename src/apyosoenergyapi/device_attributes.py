@@ -38,7 +38,7 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
             attr.update({"available": (await self.online_offline(device_id))})
             attr.update({"power_load": (await self.get_power_consumption(device_id))})
             attr.update({"volume": (await self.get_volume(device_id))})
-            attr.update({"tapping_capacity_kWh": (await self.get_tapping_capacity_kwh(device_id))})
+            attr.update({"tapping_capacity": (await self.get_tapping_capacity(device_id))})
             attr.update({
                 "capacity_mixed_water_40": (await self.get_capacity_mixed_water_40(device_id))
             })
@@ -227,7 +227,7 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
 
         return volume
 
-    async def get_tapping_capacity_kwh(self, device_id: str):
+    async def get_tapping_capacity(self, device_id: str):
         """Get tapping capacity in kWh.
 
         Args:
@@ -557,3 +557,79 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
             await self.session.log.error(exception)
 
         return level
+
+    async def get_temperature_one(self, device_id: str):
+        """Get the one temperature.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The current reported temperature from the one wire sensor.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("currentTemperatureOne")
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return temperature
+    
+    async def get_temperature_low(self, device_id: str):
+        """Get the low temperature.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The current reported temperature from the low sensor.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("currentTemperatureLow")
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return temperature
+    
+    async def get_temperature_mid(self, device_id: str):
+        """Get the mid temperature.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The current reported temperature from the mid sensor.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("currentTemperatureMid")
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return temperature
+    
+    async def get_temperature_top(self, device_id: str):
+        """Get the top temperature.
+
+        Args:
+            device_id (str): The id of the device
+
+        Returns:
+            float: The current reported temperature from the top sensor.
+        """
+        temperature = None
+
+        try:
+            data = self.session.data.devices[device_id]
+            temperature = data.get("control", {}).get("currentTemperatureTop")
+        except KeyError as exception:
+            await self.session.log.error(exception)
+
+        return temperature

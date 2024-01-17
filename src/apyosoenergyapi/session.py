@@ -238,8 +238,8 @@ class OSOEnergySession:
             self.add_sensor(
                 "sensor",
                 device,
-                haName=" Tapping Capacity kWh",
-                osoEnergyType="TAPPING_CAPACITY_KWH"
+                haName=" Tapping Capacity",
+                osoEnergyType="TAPPING_CAPACITY"
             )
             self.add_sensor(
                 "sensor",
@@ -250,6 +250,14 @@ class OSOEnergySession:
             self.add_sensor("sensor", device, haName=" V40 Min", osoEnergyType="V40_MIN")
             self.add_sensor("sensor", device, haName=" V40 Level Min", osoEnergyType="V40_LEVEL_MIN")
             self.add_sensor("sensor", device, haName=" V40 Level Max", osoEnergyType="V40_LEVEL_MAX")
+            if(device.get("control", {}).get("currentTemperatureOne") is not None):
+                self.add_sensor("sensor", device, haName=" Temperature One", osoEnergyType="TEMPERATURE_ONE")
+            if(device.get("control", {}).get("currentTemperatureLow") is not None):
+                self.add_sensor("sensor", device, haName=" Temperature Low", osoEnergyType="TEMPERATURE_LOW")
+            if(device.get("control", {}).get("currentTemperatureMid") is not None):
+                self.add_sensor("sensor", device, haName=" Temperature Mid", osoEnergyType="TEMPERATURE_MID")
+            if(device.get("control", {}).get("currentTemperatureTop") is not None):
+                self.add_sensor("sensor", device, haName=" Temperature Top", osoEnergyType="TEMPERATURE_TOP")
 
             self.add_binary_sensor("binary_sensor", device, haName=" Power Save", osoEnergyType="POWER_SAVE")
             self.add_binary_sensor("binary_sensor", device, haName=" Extra Energy", osoEnergyType="EXTRA_ENERGY")

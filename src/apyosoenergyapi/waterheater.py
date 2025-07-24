@@ -4,6 +4,7 @@ from array import array
 from numbers import Number
 from aiohttp.web_exceptions import HTTPError
 from .helper.const import OSOTOHA, OSOEnergyWaterHeaterData
+from datetime import datetime, timezone, timedelta
 
 
 class OSOWaterHeater:
@@ -148,6 +149,52 @@ class OSOWaterHeater:
 
         try:
             resp = await self.session.api.set_profile(device.device_id, hours=profile)
+            if resp["original"] == 200:
+                final = True
+                await self.session.get_devices()
+
+        except HTTPError as exception:
+            await self.session.log.error(exception)
+
+        return final
+    
+    async def enable_holiday_mode(self, device: OSOEnergyWaterHeaterData, period_days: int = 365):
+        """Enable holiday mode for device.
+
+        Args:
+            device (OSOEnergyWaterHeaterData): Device to enable holiday mode for.
+            period_days (int, optional): Number of days to enable holiday mode for. Defaults to 365.
+
+        Returns:
+            boolean: return True/False if enabling holiday mode was successful.
+        """
+        final = False
+        try:
+            start_date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            end_date = (datetime.now(timezone.utc) + timedelta(days=period_days)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            resp = await self.session.api.enable_holiday_mode(device.device_id, start_date, end_date)
+            if resp["original"] == 200:
+                final = True
+                await self.session.get_devices()
+
+        except HTTPError as exception:
+            await self.session.log.error(exception)
+
+        return final
+    
+    async def disable_holiday_mode(self, device: OSOEnergyWaterHeaterData):
+        """Disable holiday mode for device.
+
+        Args:
+            device (OSOEnergyWaterHeaterData): Device to disable holiday mode for.
+
+        Returns:
+            boolean: return True/False if disabling holiday mode was successful.
+        """
+        final = False
+
+        try:
+            resp = await self.session.api.disable_holiday_mode(device.device_id)
             if resp["original"] == 200:
                 final = True
                 await self.session.get_devices()

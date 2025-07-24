@@ -30,6 +30,8 @@ class OSOEnergyApiAsync:
             "profile": self.base_url + "/1/Device/{0}/Profile",
             "optimization_mode": self.base_url + "/1/Device/{0}/OptimizationMode",
             "set_v40_min": self.base_url + "/1/Device/{0}/V40Min/{1}",
+            "enable_holiday_mode": self.base_url + "/1/Device/{0}/HolidayMode/{1}/{2}",
+            "disable_holiday_mode": self.base_url + "/1/Device/{0}/HolidayMode",
             "user": self.base_url + "/1/User/Details"
         }
         self.headers = {
@@ -164,6 +166,26 @@ class OSOEnergyApiAsync:
         url = self.urls["set_v40_min"].format(device_id, v40_min)
         try:
             await self.request("put", url)
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
+
+        return self.json_return
+
+    async def enable_holiday_mode(self, device_id: str, start_date: str, end_date: str):
+        """Enable holiday mode."""
+        url = self.urls["enable_holiday_mode"].format(device_id, start_date, end_date)
+        try:
+            await self.request("post", url)
+        except (OSError, RuntimeError, ZeroDivisionError) as exception:
+            raise HTTPError from exception
+
+        return self.json_return
+    
+    async def disable_holiday_mode(self, device_id: str):
+        """Disable holiday mode."""
+        url = self.urls["disable_holiday_mode"].format(device_id)
+        try:
+            await self.request("delete", url)
         except (OSError, RuntimeError, ZeroDivisionError) as exception:
             raise HTTPError from exception
 

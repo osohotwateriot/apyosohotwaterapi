@@ -256,6 +256,7 @@ class WaterHeater(OSOWaterHeater):
             dev_data.profile = attributes.get("profile")
             dev_data.power_load = attributes.get("power_load")
             dev_data.volume = attributes.get("volume")
+            dev_data.isInPowerSave = attributes.get("isInPowerSave", False)
 
             self.session.devices.update({device.device_id: dev_data})
             return self.session.devices[device.device_id]

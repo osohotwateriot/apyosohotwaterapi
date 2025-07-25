@@ -9,6 +9,7 @@ from aiohttp import ClientSession
 from loguru import logger
 from apyosoenergyapi.sensor import Sensor
 from apyosoenergyapi.binary_sensor import BinarySensor
+from apyosoenergyapi.switch import Switch
 
 from .session import OSOEnergySession
 from .waterheater import WaterHeater
@@ -104,6 +105,7 @@ class OSOEnergy(OSOEnergySession):
         self.hotwater = WaterHeater(self.session)
         self.sensor = Sensor(self.session)
         self.binary_sensor = BinarySensor(self.session)
+        self.switch = Switch(self.session)
         self.logger = logger
         if debug:
             sys.settrace(trace_debug)

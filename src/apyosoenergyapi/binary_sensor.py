@@ -53,8 +53,8 @@ class BinarySensor(OSOEnergyBinarySensor):
                 code = binary_sensor_commands.get(dev_data.osoEnergyType)
                 dev_data.state = await eval(code)
 
-            self.session.sensors.update({device.device_id: dev_data})
-            return self.session.sensors[device.device_id]
+            self.session.binary_sensors.update({device.device_id: dev_data})
+            return self.session.binary_sensors[device.device_id]
 
         await self.session.log.error_check(
             device.device_id, device.online

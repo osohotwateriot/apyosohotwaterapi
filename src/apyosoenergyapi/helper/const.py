@@ -66,6 +66,9 @@ sensor_commands = {
     "TEMPERATURE_TOP": "self.session.attr.get_temperature_top(device.device_id)",
 }
 
+switch_commands = {
+    "HOLIDAY_MODE": "self.session.attr.get_power_save_bool(device.device_id)",
+}
 
 
 class OSOEnergyEntityBase:
@@ -92,6 +95,7 @@ class OSOEnergyWaterHeaterData(OSOEnergyEntityBase):
     profile: list[float]
     power_load: float
     volume: float
+    isInPowerSave: bool
 
 class OSOEnergySensorData(OSOEnergyEntityBase):
     """Sensor object containing the device data"""
@@ -100,5 +104,10 @@ class OSOEnergySensorData(OSOEnergyEntityBase):
 
 class OSOEnergyBinarySensorData(OSOEnergyEntityBase):
     """Sensor object containing the device data"""
+    osoEnergyType: str
+    state: bool
+
+class OSOEnergySwitchData(OSOEnergyEntityBase):
+    """Switch object containing the device data"""
     osoEnergyType: str
     state: bool

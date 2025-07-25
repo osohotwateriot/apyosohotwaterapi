@@ -12,7 +12,7 @@ from apyosoenergyapi.helper.osoenergy_helper import OSOEnergyHelper
 from typing import Any
 
 from .device_attributes import OSOEnergyAttributes
-from .helper.const import OSOTOHA, OSOEnergyBinarySensorData, OSOEnergySensorData, OSOEnergyWaterHeaterData
+from .helper.const import OSOTOHA, OSOEnergyBinarySensorData, OSOEnergySensorData, OSOEnergySwitchData, OSOEnergyWaterHeaterData
 from .helper.osoenergy_exceptions import (
     OSOEnergyApiError,
     OSOEnergyReauthRequired,
@@ -67,10 +67,13 @@ class OSOEnergySession:
         )
         self.devices = {}
         self.sensors = {}
+        self.binary_sensors = {}
+        self.switches = {}
         self.device_list = {
             "binary_sensor": [],
             "sensor": [],
-            "water_heater": []
+            "water_heater": [],
+            "switch": [],
         }
 
     async def update_interval(self, new_interval: timedelta):
@@ -225,6 +228,7 @@ class OSOEnergySession:
         self.device_list["binary_sensor"] = []
         self.device_list["sensor"] = []
         self.device_list["water_heater"] = []
+        self.device_list["switch"] = []
 
         for a_device in self.data["devices"]:
             device = self.data.devices[a_device]
@@ -263,6 +267,8 @@ class OSOEnergySession:
             self.add_binary_sensor("binary_sensor", device, haName=" Extra Energy", osoEnergyType="EXTRA_ENERGY")
             self.add_binary_sensor("binary_sensor", device, haName=" Heater State", osoEnergyType="HEATER_STATE")
 
+            self.add_switch("switch", device, haName=" Holiday Mode", osoEnergyType="HOLIDAY_MODE")
+
         return self.device_list
 
     def add_device(self, entity_type: str, data: dict):
@@ -286,6 +292,7 @@ class OSOEnergySession:
             result.power_load = float(data.get("powerConsumption", 0))
             result.volume = float(data.get("volume", 0))
             result.online = online
+            result.isInPowerSave = data.get("isInPowerSave", False)
         except KeyError as exception:
             self.logger.error(exception)
 
@@ -329,6 +336,34 @@ class OSOEnergySession:
 
         """
         result = OSOEnergyBinarySensorData()
+        display_name = data.get("deviceName", "Water Heater")
+        connection_status = data.get("connectionState", {}).get("connectionState", "Unknown")
+        online = OSOTOHA["Hotwater"]["HeaterConnection"].get(connection_status, False)
+
+        try:
+            result.ha_name = display_name + haName
+            result.ha_type = entity_type
+            result.device_id = data["deviceId"]
+            result.device_type = data.get("deviceType", "Unknown")
+            result.device_name = display_name
+            result.online = online
+            result.osoEnergyType = osoEnergyType
+
+        except KeyError as exception:
+            self.logger.error(exception)
+
+        self.device_list[entity_type].append(result)
+
+    def add_switch(self, entity_type: str, data: dict, haName: str, osoEnergyType: str):
+        """Add switch to the list.
+
+        Args:
+            entity_type (str): Type of entity
+            data (dict): Information to create entity.
+            haName (str): Sensor name for HA
+
+        """
+        result = OSOEnergySwitchData()
         display_name = data.get("deviceName", "Water Heater")
         connection_status = data.get("connectionState", {}).get("connectionState", "Unknown")
         online = OSOTOHA["Hotwater"]["HeaterConnection"].get(connection_status, False)

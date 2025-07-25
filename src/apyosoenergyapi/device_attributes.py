@@ -60,6 +60,7 @@ class OSOEnergyAttributes:  # pylint: disable=too-many-public-methods
             attr.update({"v40_level_min": (await self.get_v40_level_min(device_id))})
             attr.update({"v40_level_max": (await self.get_v40_level_max(device_id))})
             attr.update({"profile": (await self.get_profile(device_id))})
+            attr.update({"isInPowerSave": (await self.get_power_save_bool(device_id))})
 
         return attr
 
